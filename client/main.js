@@ -1,6 +1,6 @@
 (function() {
 
-    const ROOM_SIZE = 4;
+    const ROOM_SIZE = 3;
     var myId;
     var socket = io();
     socket.on("assign", onAssignment);

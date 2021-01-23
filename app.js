@@ -6,7 +6,7 @@ const port = process.env.PORT || 8000;
 const cors = require("cors");
 
 
-const ROOM_SIZE = 4;
+const ROOM_SIZE = 3;
 const rooms = new Map();
 let roomId = 1;
 
