@@ -4,7 +4,8 @@
   "description": "Let's make an awesome ball game for GGJ 2021! Repository name subject to change",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon"
   },
   "repository": {
     "type": "git",
