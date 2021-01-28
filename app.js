@@ -6,7 +6,7 @@ const port = process.env.PORT || 8000;
 const cors = require("cors");
 
 
-const ROOM_SIZE = 3;
+const ROOM_SIZE = 2;
 const rooms = new Map();
 let roomId = 1;
 
@@ -24,19 +24,29 @@ function onConnection(socket){
           socket.isassigned = true;
           socket.room = room;
           socket.join(room);
-          players.push(socket.id);
-        //   console.log(rooms);
+          players.push({playerID: socket.id, y: 250, position: 'right'});
+          //console.log(rooms);
         }
     }); 
 
     if (!socket.isassigned) {
-        let room = "room" + roomId
-        rooms.set(room, {gameStarted: false, players: [socket.id]});
+        let room = "room" + roomId;
+        let angle = Math.floor(Math.random() * 360);     // returns a random integer from 0 to 360
+        rooms.set(room, 
+            {
+                gameStarted: false, 
+                ballPosition: 
+                {
+                    angle: angle
+                }, 
+                players: [{playerID: socket.id, y: 250, position: 'left'}]
+            }
+        );
         socket.room = room;
         socket.isassigned = true;
         socket.join(room);
         roomId++;
-        // console.log(rooms);
+        //console.log(rooms);
     }
 
     // console.log(io.sockets.adapter.rooms);
@@ -50,19 +60,37 @@ function onConnection(socket){
         if (rooms.get(socket.room).players <= 0) {
             rooms.delete(socket.room);
         }
-    })
+    });
+
+    socket.on('playerMovement', function(movementData)
+    {
+        rooms.get(socket.room).players.forEach(function(player)
+        {
+            if(player.playerID === socket.id)
+            {
+                player.y = movementData.y;
+            }
+            else
+            {
+                io.to(player.playerID).emit("opponentMoved", movementData.y);
+            }
+        });
+    });
 }
 
 function emitAssignment(socket) {
     let roomSize = rooms.get(socket.room).players.length;
     if (roomSize >= ROOM_SIZE) {
         for (let i = 0; i < roomSize; i++) {
-            io.to(rooms.get(socket.room).players[i]).emit("assign", roomSize, i + 1);
+            let id = rooms.get(socket.room).players[i].playerID;
+            io.to(id).emit("assign", roomSize, i+1);
+            
+            //Sends information 
+            io.to(id).emit("currentPlayers", rooms.get(socket.room));
         }
         rooms.get(socket.room).gameStarted = true;
     }
     io.in(socket.room).emit("assign", roomSize);
-    
 }
 
 Array.prototype.remove = function() {
