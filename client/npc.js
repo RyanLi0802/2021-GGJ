@@ -27,13 +27,13 @@ function updateNPC(socket) {
         } 
         
         if (npc.move == 1) { // go left
-            npc.x -= 3;
+            npc.x -= 1;
         } else if (npc.move == 2) { // go up
-            npc.y += 3;
+            npc.y += 1;
         } else if (npc.move == 3) { // go right
-            npc.x += 3;
+            npc.x += 1;
         } else if (npc.move == 4) { // go down
-            npc.y -= 3;
+            npc.y -= 1;
         }
         npc.time--;
         npcInfo.push({x: npc.x, y: npc.y});
