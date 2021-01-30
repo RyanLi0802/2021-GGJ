@@ -3,7 +3,12 @@ class playScenes extends Phaser.Scene
     constructor()
     {
         super();
-    }
+	}
+
+	preload()
+	{
+		
+	}
 
     create()
     {
@@ -11,14 +16,14 @@ class playScenes extends Phaser.Scene
 		this.socket = io();
 
 		this.physics.world.setBounds(-100, 0, 1000, 500);
-		this.ball = this.add.circle(400, 250, 10, 0xffffff, 1)
-		this.physics.add.existing(this.ball)
-		this.ball.body.setCircle(10)
-		this.ball.body.setBounce(1, 1)
-		this.ball.body.setMaxSpeed(400)
+
+		/* this.ball = this.add.circle(400, 250, 10, 0xffffff, 1);
+		this.physics.add.existing(this.ball);
+		this.ball.body.setBounce(1, 1);
+		this.ball.body.setMaxSpeed(400);
 
 		this.ball.body.setCollideWorldBounds(true, 1, 1)
-		this.ball.body.onWorldBounds = true
+		this.ball.body.onWorldBounds = true;
 
 		this.socket.on('currentPlayers', function(info){
 			info.players.forEach(function(player){
@@ -44,41 +49,7 @@ class playScenes extends Phaser.Scene
 		this.socket.on('opponentMoved', function(y_pos)
 		{
 			self.otherPaddle.y = y_pos;
-		});
-
-		/*
-
-        this.physics.world.setBounds(-100, 0, 1000, 500)
-
-		this.ball = this.add.circle(400, 250, 10, 0xffffff, 1)
-		this.physics.add.existing(this.ball)
-		this.ball.body.setCircle(10)
-		this.ball.body.setBounce(1, 1)
-		this.ball.body.setMaxSpeed(400)
-
-		this.ball.body.setCollideWorldBounds(true, 1, 1)
-		this.ball.body.onWorldBounds = true
-
-		this.paddleLeft = this.add.rectangle(50, 250, 30, 100, 0xffffff, 1)	
-		this.physics.add.existing(this.paddleLeft, true)
-	    
-		this.paddleRight = this.add.rectangle(750, 250, 30, 100, 0xffffff, 1)
-		this.physics.add.existing(this.paddleRight, true)
-		
-		this.physics.add.collider(this.paddleLeft, this.ball, this.handlePaddleBallCollision, undefined, this)
-		this.physics.add.collider(this.paddleRight, this.ball, this.handlePaddleBallCollision, undefined, this)
-
-		this.physics.world.on('worldbounds', this.handleBallWorldBoundsCollision, this)
-
-		this.cursors = this.input.keyboard.createCursorKeys()
-
-		this.socket.on("assign", this.onAssignment);
-
-		this.time.delayedCall(1500, () => {
-			this.resetBall()
-		})
-
-		*/
+		}); */
 
 		this.cursors = this.input.keyboard.createCursorKeys();
 	}

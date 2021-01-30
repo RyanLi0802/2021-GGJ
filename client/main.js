@@ -14,7 +14,7 @@ import Game from './game.js';
             default: 'arcade',
             arcade: {
                 fps: 60,
-                gravity: {y : 0},
+                gravity: {y : 0}
             }
         },
     };
@@ -22,8 +22,9 @@ import Game from './game.js';
     const game = new Phaser.Game(config);
     game.scene.add('Game', Game);
 
-    game.events.off("hidden", game.onHidden, game, false);
-    game.events.off("visible", game.onVisible, game, false);
+
+    // game.events.off("hidden", game.onHidden, game, false);
+    // game.events.off("visible", game.onVisible, game, false);
 
     /* ROOM MANAGEMENT CODE */
 
