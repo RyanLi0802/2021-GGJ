@@ -24,7 +24,7 @@ function onConnection(socket){
           socket.isassigned = true;
           socket.room = room;
           socket.join(room);
-          players.push({playerID: socket.id, y: 250, position: 'right'});
+          players.push({playerID: socket.id, x: 500, y: 250, type: 'finder'});
           //console.log(rooms);
         }
     }); 
@@ -39,7 +39,7 @@ function onConnection(socket){
                 {
                     angle: angle
                 }, 
-                players: [{playerID: socket.id, y: 250, position: 'left'}]
+                players: [{playerID: socket.id, x: 300, y: 250, type: 'hider'}]
             }
         );
         socket.room = room;
@@ -68,11 +68,12 @@ function onConnection(socket){
         {
             if(player.playerID === socket.id)
             {
+                player.x = movementData.x;
                 player.y = movementData.y;
             }
             else
             {
-                io.to(player.playerID).emit("opponentMoved", movementData.y);
+                io.to(player.playerID).emit("playerMoved", {playerID: socket.id, x: movementData.x, y: movementData.y});
             }
         });
     });

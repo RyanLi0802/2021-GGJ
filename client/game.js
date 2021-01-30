@@ -7,7 +7,8 @@ class playScenes extends Phaser.Scene
 
 	preload()
 	{
-		this.load.image('test-sprite', 'assets/test-sprite2.png');
+		this.load.image('test-sprite', 'assets/test-sprite.png');
+		this.load.image('fireball', 'assets/fireball5.png');
 	}
 
     create()
@@ -15,15 +16,19 @@ class playScenes extends Phaser.Scene
 		let self = this;
 		this.socket = io();
 
-		this.player = this.physics.add.sprite(400, 250, 'test-sprite');
+		this.velocity = 160;
 
+		this.otherPlayers = this.physics.add.group();
+
+		this.fireball = this.physics.add.sprite(400, 250, 'fireball');
+		
 		/* this.ball = this.add.circle(400, 250, 10, 0xffffff, 1);
 		this.physics.add.existing(this.ball);
 		this.ball.body.setBounce(1, 1);
 		this.ball.body.setMaxSpeed(400);
 
 		this.ball.body.setCollideWorldBounds(true, 1, 1)
-		this.ball.body.onWorldBounds = true;
+		this.ball.body.onWorldBounds = true; */
 
 		this.socket.on('currentPlayers', function(info){
 			info.players.forEach(function(player){
@@ -32,111 +37,107 @@ class playScenes extends Phaser.Scene
 				}
 				else 
 				{
-					self.addOtherPlayer(self, player);	
+					self.addOtherPlayers(self, player);	
 				}
 			});
-
-			self.physics.add.collider(self.paddle, self.ball, self.handlePaddleBallCollision, undefined, self);
-			self.physics.add.collider(self.otherPaddle, self.ball, self.handlePaddleBallCollision, undefined, self);
-
-			self.physics.world.on('worldbounds', self.handleBallWorldBoundsCollision, self)
-
-			self.time.delayedCall(1500, () => {
-				self.resetBall(info.ballPosition.angle)
-			})
 		});
 
-		this.socket.on('opponentMoved', function(y_pos)
+		this.socket.on('playerMoved', function (playerInfo)
 		{
-			self.otherPaddle.y = y_pos;
-		}); */
+			console.log(playerInfo);
+			self.otherPlayers.getChildren().forEach(function(otherPlayer){
+				if(playerInfo.playerID === otherPlayer.playerID)
+				{
+					otherPlayer.setPosition(playerInfo.x, playerInfo.y);
+				}
+			});
+		});
 
 		this.cursors = this.input.keyboard.createCursorKeys();
 	}
 
 	addPlayer(self, playerInfo){
-		if(playerInfo.position == 'left')
+		if(playerInfo.type == 'hider')
 		{
-			self.paddle = self.add.rectangle(50, 250, 30, 100, 0xffffff, 1);
+			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
+			self.playerType = 'hider';
 		}
 		else
 		{
-			self.paddle = self.add.rectangle(750, 250, 30, 100, 0xffffff, 1);
+			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
+			self.playerType = 'finder';
 		}
-		self.physics.add.existing(self.paddle, true);
+		self.player.setCollideWorldBounds(true);
 	}
 
-	addOtherPlayer(self, playerInfo)
+	addOtherPlayers(self, playerInfo)
 	{
-		if(playerInfo.position == 'left')
+		let otherPlayer;
+		if(playerInfo.type == 'hider')
 		{
-			self.otherPaddle = self.add.rectangle(50, 250, 30, 100, 0xffffff, 1);
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
 		}
 		else
 		{
-			self.otherPaddle = self.add.rectangle(750, 250, 30, 100, 0xffffff, 1);
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
 		}
-		self.physics.add.existing(self.otherPaddle, true);
+		otherPlayer.playerID = playerInfo.playerID;
+		self.otherPlayers.add(otherPlayer);
 	}
-
-    handleBallWorldBoundsCollision(body, up, down, left, right)
-	{
-		if (left || right)
-		{
-			return
-		}
-	}
-
-	handlePaddleBallCollision(paddle, ball)
-	{
-		/** @type {Phaser.Physics.Arcade.Body} */
-		const body = this.ball.body
-		const vel = body.velocity
-		vel.x *= 1.05
-		vel.y *= 1.05
-
-		body.setVelocity(vel.x, vel.y)
-    }
     
     update()
     {
-        if(this.paddle)
+		let self = this;
+		if(this.player)
 		{
-			const body = this.paddle.body;
-			if (this.cursors.up.isDown)
-			{
-				if(this.paddle.y > 50)
-				{
-					this.paddle.y -= 10
-					body.updateFromGameObject()
-				}
-			}
-			else if (this.cursors.down.isDown)
-			{
-				if(this.paddle.y < 450)
-				{
-					this.paddle.y += 10
-					body.updateFromGameObject()
-				}
-			}
-
-			if(this.paddle.oldPosition && this.paddle.y !== this.paddle.oldPosition.y)
-			{
-				this.socket.emit('playerMovement', {y: this.paddle.y});
-			}
-			this.paddle.oldPosition = {
-				y: this.paddle.y
-			}
+			this.updateMovement();
+			this.updateServer();
 		}
-    }
-    
-    resetBall(angle)
+	}
+	
+	updateMovement()
 	{
-		this.ball.setPosition(400, 250)
+		if(this.cursors.left.isDown)
+		{	
+			this.player.setVelocityX(-this.velocity);
+		}
+		else if (this.cursors.right.isDown)
+		{
+			this.player.setVelocityX(this.velocity);
+		}
+		else
+		{
+			this.player.setVelocityX(0);
+		}
 
-		const vec = this.physics.velocityFromAngle(angle, 300)
+		if(this.cursors.up.isDown)
+		{
+			this.player.setVelocityY(-this.velocity);
+		}
+		else if (this.cursors.down.isDown)
+		{
+			this.player.setVelocityY(this.velocity);
+		}
+		else
+		{
+			this.player.setVelocityY(0);
+		}
+	}
 
-		this.ball.body.setVelocity(vec.x, vec.y)
+	updateServer()
+	{
+		let x = this.player.x;
+		let y = this.player.y;
+
+		if(this.player.oldPosition && (x !== this.player.oldPosition.x || y !== this.player.oldPosition.y))
+		{
+			this.socket.emit('playerMovement', {x: this.player.x, y: this.player.y});
+		}
+
+		this.player.oldPosition = {
+			x: this.player.x,
+			y: this.player.y
+		}
 	}
 }
 
