@@ -7,7 +7,7 @@ class playScenes extends Phaser.Scene
 
 	preload()
 	{
-		
+		this.load.image('test-sprite', 'assets/test-sprite2.png');
 	}
 
     create()
@@ -15,7 +15,7 @@ class playScenes extends Phaser.Scene
 		let self = this;
 		this.socket = io();
 
-		this.physics.world.setBounds(-100, 0, 1000, 500);
+		this.player = this.physics.add.sprite(400, 250, 'test-sprite');
 
 		/* this.ball = this.add.circle(400, 250, 10, 0xffffff, 1);
 		this.physics.add.existing(this.ball);
