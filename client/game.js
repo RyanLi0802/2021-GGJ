@@ -8,7 +8,10 @@ class playScenes extends Phaser.Scene
 	preload()
 	{
 		this.load.image('test-sprite', 'assets/test-sprite.png');
-		this.load.image('fireball', 'assets/fireball5.png');
+		this.load.image('fireball', 'assets/fireball.png');
+
+		this.load.image('tiles', 'assets/Itch release raw tileset.png');
+		this.load.tilemapTiledJSON('map', 'assets/map/mainMap.json');
 	}
 
     create()
@@ -20,7 +23,9 @@ class playScenes extends Phaser.Scene
 
 		this.otherPlayers = this.physics.add.group();
 
-		this.fireball = this.physics.add.sprite(400, 250, 'fireball');
+		const map = this.make.tilemap({key: 'map'});
+		const tileset = map.addTilesetImage('testTileset', 'tiles');
+		const platforms = map.createLayer('Platforms', tileset, 0, 0);
 		
 		/* this.ball = this.add.circle(400, 250, 10, 0xffffff, 1);
 		this.physics.add.existing(this.ball);
@@ -76,10 +81,12 @@ class playScenes extends Phaser.Scene
 		if(playerInfo.type == 'hider')
 		{
 			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
+			otherPlayer.playerType = 'hider';
 		}
 		else
 		{
 			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
+			otherPlayer.playerType = 'finder';
 		}
 		otherPlayer.playerID = playerInfo.playerID;
 		self.otherPlayers.add(otherPlayer);
