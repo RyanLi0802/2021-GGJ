@@ -8,7 +8,7 @@ class playScenes extends Phaser.Scene
 	preload()
 	{
 		this.load.image('test-sprite', 'assets/test-sprite.png');
-		this.load.image('fireball', 'assets/fireball5.png');
+		this.load.image('fireball', 'assets/fireball.png');
 	}
 
     create()
@@ -20,7 +20,7 @@ class playScenes extends Phaser.Scene
 
 		this.otherPlayers = this.physics.add.group();
 
-		this.fireball = this.physics.add.sprite(400, 250, 'fireball');
+		// this.fireball = this.physics.add.sprite(400, 250, 'fireball');
 		
 		/* this.ball = this.add.circle(400, 250, 10, 0xffffff, 1);
 		this.physics.add.existing(this.ball);
@@ -40,6 +40,15 @@ class playScenes extends Phaser.Scene
 					self.addOtherPlayers(self, player);	
 				}
 			});
+
+			if (self.playerType == 'hider') {
+				createNPC(self, self.socket);
+			} else {
+				self.socket.on("create npcs", npcInfo => {
+					onNPCCreate(self, npcInfo);
+				});
+				self.socket.on("update npcs", onNPCUpdate);
+			}
 		});
 
 		this.socket.on('playerMoved', function (playerInfo)
@@ -59,15 +68,16 @@ class playScenes extends Phaser.Scene
 	addPlayer(self, playerInfo){
 		if(playerInfo.type == 'hider')
 		{
-			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
+			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
 			self.playerType = 'hider';
 		}
 		else
 		{
-			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
+			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
 			self.playerType = 'finder';
 		}
 		self.player.setCollideWorldBounds(true);
+		self.physics.add.existing(self.player, true);
 	}
 
 	addOtherPlayers(self, playerInfo)
@@ -75,14 +85,15 @@ class playScenes extends Phaser.Scene
 		let otherPlayer;
 		if(playerInfo.type == 'hider')
 		{
-			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
 		}
 		else
 		{
-			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
 		}
 		otherPlayer.playerID = playerInfo.playerID;
 		self.otherPlayers.add(otherPlayer);
+		self.physics.add.existing(otherPlayer, true);
 	}
     
     update()
@@ -92,6 +103,10 @@ class playScenes extends Phaser.Scene
 		{
 			this.updateMovement();
 			this.updateServer();
+		}
+
+		if (this.playerType == 'hider') {
+			updateNPC(this.socket);
 		}
 	}
 	
