@@ -33,7 +33,7 @@ class playScenes extends Phaser.Scene
 
 		const map = this.make.tilemap({key: 'map'});
 		const tileset = map.addTilesetImage('testTileset', 'tiles');
-		this.platforms = map.createLayer('Platforms', tileset, 0, 0);
+		this.platforms = map.createLayer('Platforms', tileset, 0, 0).setPipeline('Light2D');
 		this.platforms.setCollisionByExclusion(-1, true);
 
 		this.cameras.main.zoom = 2;
