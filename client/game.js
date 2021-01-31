@@ -11,6 +11,7 @@ class playScenes extends Phaser.Scene
 		this.load.image('bg', 'assets/background.jpg');
 		this.load.image('tiles', 'assets/Itch release raw tileset.png');
 		this.load.tilemapTiledJSON('map', 'assets/map/mainMap.json');
+		this.load.bitmapFont('carrier_command', 'assets/fonts/bitmapFonts/carrier_command.png', 'assets/fonts/bitmapFonts/carrier_command.xml');
 	}
 
     create()
@@ -235,7 +236,7 @@ class playScenes extends Phaser.Scene
 	finderWins() {
 		if (this.playerType == "hider") {
 			this.player.destroy();
-			// say you lose
+			bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y, 'carrier_command',"You've Lost :-(",34);
 		} else {
 			this.otherPlayers.getChildren().forEach(otherPlayer => {
 				if (otherPlayer.type == 'hider') {
