@@ -30,7 +30,7 @@ class playScenes extends Phaser.Scene
 		this.shoeBuff = false;
 		this.iceBuff = false;
 
-		this.velocity = 200;
+		this.velocity = 50;
 
 		this.otherPlayers = this.physics.add.group();
 
@@ -311,7 +311,7 @@ class playScenes extends Phaser.Scene
 					this.player.direction.x = 'right';
 				}
 			}
-			else 
+			else
 			{
 				this.player.direction.x = 'none';
 			}
