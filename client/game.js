@@ -236,22 +236,26 @@ class playScenes extends Phaser.Scene
 	finderWins() {
 		if (this.playerType == "hider") {
 			this.player.destroy();
-			bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y, 'carrier_command',"You've Lost :-(",34);
+			bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y, 
+										'carrier_command',"You've Lost :-(",34);
 		} else {
 			this.otherPlayers.getChildren().forEach(otherPlayer => {
 				if (otherPlayer.type == 'hider') {
 					otherPlayer.destroy();
 				}
 			});
-			// show you win.
+			bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y, 
+										'carrier_command',"You win!",34);
 		}
 	}
 
 		hiderWins() {
 			if (this.playerType == 'hider') {
-				// show you win
+				bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y, 
+					'carrier_command',"You win!",34);
 			} else {
-				// show you lose
+				bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y, 
+					'carrier_command',"You've Lost :-(",34);
 			}
 		}
 
