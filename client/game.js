@@ -93,10 +93,7 @@ class playScenes extends Phaser.Scene
 		self.player.setCollideWorldBounds(true);
 		self.physics.add.existing(self.player, true);
 		self.cameras.main.startFollow(self.player);
-		self.physics.add.collider(self.player, self.platforms, _=>{
-			self.player.setVelocityX(0);
-			self.player.setVelocityY(0);
-		});
+		self.physics.add.collider(self.player, self.platforms);
 	}
 
 	addOtherPlayers(self, playerInfo)
@@ -113,10 +110,7 @@ class playScenes extends Phaser.Scene
 		otherPlayer.playerID = playerInfo.playerID;
 		self.otherPlayers.add(otherPlayer);
 		self.physics.add.existing(otherPlayer, true);
-		self.physics.add.collider(otherPlayer, self.platforms, _=>{
-			otherPlayer.setVelocityX(0);
-			otherPlayer.setVelocityY(0);
-		});
+		self.physics.add.collider(otherPlayer, self.platforms);
 	}
     
     update()
