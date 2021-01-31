@@ -137,10 +137,6 @@ class playScenes extends Phaser.Scene
 	// 	});
 	// this.spotlight.scale = 2;
 
-	this.light = this.lights.addLight(200, 200, 100).setScrollFactor(1.0);
-
-	this.lights.enable().setAmbientColor(0x000000);
-
 	//bg.mask = new Phaser.Display.Masks.BitmapMask(this, this.spotlight);
 	}
 
@@ -176,10 +172,14 @@ class playScenes extends Phaser.Scene
 		if(playerInfo.type == 'hider')
 		{
 			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'hider');
+			self.light = self.lights.addLight(200, 200, 100).setScrollFactor(1.0);
+			self.lights.enable().setAmbientColor(0xffffff);
 		}
 		else
 		{
 			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'finder');
+			self.light = self.lights.addLight(200, 200, 100).setScrollFactor(1.0);
+			self.lights.enable().setAmbientColor(0x000000);
 		}
 		self.playerType = playerInfo.type;
 		self.player.setCollideWorldBounds(true);
@@ -260,9 +260,11 @@ class playScenes extends Phaser.Scene
 			this.player.setVelocityY(0);
 			this.player.direction.y = 'none';
 		}
-
-		this.light.x = this.player.x;
-		this.light.y = this.player.y;
+		if(this.light)
+		{
+			this.light.x = this.player.x;
+			this.light.y = this.player.y;
+		}
 
 		if(this.playerType == "hider")
 		{
