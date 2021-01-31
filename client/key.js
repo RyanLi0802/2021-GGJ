@@ -88,7 +88,6 @@ function onKeyUpdate(keyInfo) {
         let info = keyInfo[i];
         let key = keys[i];
         if (key != null && key.anims != null) {
-          console.log("updating keys");
           key.x = info.x;
           key.y = info.y;
           key.anims.play('key-still', true);
