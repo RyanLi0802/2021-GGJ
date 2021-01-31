@@ -70,6 +70,9 @@ function onNPCCreate(phaser, npcInfo) {
 }
 
 function onNPCUpdate(npcInfo) {
+    if (npcs.length != npcInfo.length) {
+        return;
+    }
     for (let i = 0; i < npcInfo.length; i++) {
         let info = npcInfo[i];
         let npc = npcs[i];
