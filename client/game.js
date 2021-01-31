@@ -1,8 +1,7 @@
 class playScenes extends Phaser.Scene
 {
-    constructor()
-    {
-        super();
+  constructor() {
+    super();
 	}
 
 	preload()
@@ -38,14 +37,6 @@ class playScenes extends Phaser.Scene
 		this.platforms.setCollisionByExclusion(-1, true);
 
 		this.cameras.main.zoom = 2;
-
-		/* this.ball = this.add.circle(400, 250, 10, 0xffffff, 1);
-		this.physics.add.existing(this.ball);
-		this.ball.body.setBounce(1, 1);
-		this.ball.body.setMaxSpeed(400);
-
-		this.ball.body.setCollideWorldBounds(true, 1, 1)
-		this.ball.body.onWorldBounds = true; */
 
 		this.socket.on('currentPlayers', function(info){
 			info.players.forEach(function(player){
