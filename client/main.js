@@ -41,11 +41,9 @@ import Title from './title.js';
     var myId;
     socket.on("assign", onAssignment);
 
-    function onAssignment(roomSize, id) {
+    function onAssignment(roomSize, type) {
         if (roomSize >= ROOM_SIZE) {
-            myId = id;
-            $("msg-board").innerText = `Let's start the game!
-            My id is ${myId}`;
+            $("msg-board").innerText = `You are the ${type}`;
             socket.off("assign", onAssignment);
             game.scene.stop("Title");
             game.scene.start('Game', socket);

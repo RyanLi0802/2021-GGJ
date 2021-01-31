@@ -173,7 +173,7 @@ function emitAssignment(socket) {
                 rooms.get(socket.room).players[i].y = 228;
                 rooms.get(socket.room).players[i].type = 'finder';
             }
-            io.to(id).emit("assign", roomSize, i+1);
+            io.to(id).emit("assign", roomSize, rooms.get(socket.room).players[i].type);
 
             // io.to(id).emit("currentPlayers", rooms.get(socket.room));
         }
