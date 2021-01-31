@@ -186,7 +186,7 @@ class playScenes extends Phaser.Scene
 			repeat: -1
 		})
 
-		self.anims.create({	
+		self.anims.create({
 			key: 'hider-display-still',
 			frames: [ { key: 'hider-display', frame: 74 } ],
 			frameRate: 20
@@ -326,7 +326,7 @@ class playScenes extends Phaser.Scene
 		}
 
 		const velocity = this.player.body.velocity;
-		
+
 		if(velocity.x != 0 || velocity.y != 0)
 		{
 			if(this.playerType == 'hider')

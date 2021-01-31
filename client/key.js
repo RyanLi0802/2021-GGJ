@@ -1,4 +1,4 @@
-const NUM_OF_KEY = 4;
+const NUM_OF_KEY = 10;
 const keys = [];
 
 const origin = {x: 540, y: 160};
@@ -33,7 +33,7 @@ function createKey(phaser, socket) {
         // }, null, this);
         phaser.physics.add.collider(key, phaser.platforms);
         keys.push(key);
-        console.log({x: key.x, y: key.y});
+        console.log(key.x + " "+key.y);
         keyInfo.push({x: key.x, y: key.y});
         phaser.physics.add.existing(key, true);
     }
@@ -84,7 +84,6 @@ function onKeyCreate(phaser, keyInfo) {
 }
 
 function onKeyUpdate(keyInfo) {
-    console.log(keys);
     for (let i = 0; i < keyInfo.length; i++) {
         let info = keyInfo[i];
         let key = keys[i];
