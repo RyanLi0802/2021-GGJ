@@ -12,7 +12,6 @@ class playScenes extends Phaser.Scene
 		this.load.image('bg', 'assets/background.jpg');
 		this.load.image('tiles', 'assets/Itch release raw tileset.png');
 		this.load.tilemapTiledJSON('map', 'assets/map/mainMap.json');
-		this.load.image('mask', 'assets/mask1.png');
 		this.load.bitmapFont('carrier_command', 'assets/carrier_command.png', 'assets/carrier_command.xml');
 		this.load.spritesheet('finder', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 63, endFrame: 64});
 		this.load.spritesheet('hider', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 80, endFrame: 81});
@@ -63,6 +62,7 @@ class playScenes extends Phaser.Scene
 
 			if (self.playerType == 'hider') {
 				createNPC(self, self.socket);
+				createKey(self, self.socket);
 				self.socket.on("fireball", fireball => {
 					let ball = self.physics.add.sprite(fireball.x, fireball.y, 'bullet').setScale(0.5);
 					ball.direction = fireball.direction;
@@ -77,6 +77,11 @@ class playScenes extends Phaser.Scene
 				self.socket.on("create npcs", npcInfo => {
 					onNPCCreate(self, npcInfo);
 				});
+				self.socket.on('create keys', keyInfo => {
+					onKeyCreate(self, keyInfo);
+				});
+				self.socket.on("update npcs", onNPCUpdate);
+				self.socket.on("update keys", onKeyUpdate);
 			}
 		});
 
@@ -129,7 +134,7 @@ class playScenes extends Phaser.Scene
 					this.hiderWins(velX, velY);
 				}
 			}
-		})
+		});
 
 		this.initializeAnimations(self);
 
@@ -189,6 +194,7 @@ class playScenes extends Phaser.Scene
 		}
 		self.playerType = playerInfo.type;
 		self.player.setCollideWorldBounds(true);
+		self.player.key = 0;
 		self.player.direction = {x: 'left', y: 'none'};
 		self.physics.add.existing(self.player, true);
 		self.cameras.main.startFollow(self.player);
@@ -210,6 +216,7 @@ class playScenes extends Phaser.Scene
 		otherPlayer.playerID = playerInfo.playerID;
 		otherPlayer.type = playerInfo.type;
 		otherPlayer.direction = 'left';
+		otherPlayer.key = 0;
 		self.otherPlayers.add(otherPlayer);
 		self.physics.add.existing(otherPlayer, true);
 		self.physics.add.collider(otherPlayer, self.platforms);
@@ -227,6 +234,11 @@ class playScenes extends Phaser.Scene
 			}
 			if (this.playerType == 'hider') {
 				updateNPC(this.socket);
+				updateKey(this, this.socket);
+				console.log(this.player.key);
+				if (this.player.key >= 3) {
+					this.doors.setCollisionByExclusion(-1, false);
+				}
 			} else {
 				this.emitFireBall();
 			}
@@ -390,7 +402,7 @@ class playScenes extends Phaser.Scene
 			console.log(bmpText);
 		}
 	}
- 
+
 	hiderWins() {
 		if (this.playerType == 'hider') {
 			let bmpText = this.add.bitmapText(this.player.x - 200, this.player.y - 100,
@@ -405,7 +417,7 @@ class playScenes extends Phaser.Scene
 			let text = this.add.text(this.player.x - 60, this.player.y - 40, "You've Lost :-(");
 		}
 	}
-	
+
 
 	updateServer()
 	{
