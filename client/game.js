@@ -15,6 +15,8 @@ class playScenes extends Phaser.Scene
 		this.load.bitmapFont('carrier_command', 'assets/carrier_command.png', 'assets/carrier_command.xml');
 		this.load.spritesheet('finder', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 63, endFrame: 64});
 		this.load.spritesheet('hider', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 80, endFrame: 81});
+		this.load.spritesheet('hider-display', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 74, endFrame: 75});
+		this.load.spritesheet('key', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 71, endFrame: 72});
 	}
 
     create(socket)
@@ -47,7 +49,6 @@ class playScenes extends Phaser.Scene
 		this.cameras.main.zoom = 2;
 
 		this.socket.emit('scene created', true);
-
 
 		this.socket.on('currentPlayers', function(info){
 			info.players.forEach(function(player){
@@ -140,10 +141,15 @@ class playScenes extends Phaser.Scene
 
 		this.cursors = this.input.keyboard.createCursorKeys();
 
-	this.light = this.lights.addLight(200, 200, 100).setScrollFactor(1.0);
+	// 	this.spotlight = this.make.sprite({
+	// 		x: 200,
+	// 		y: 200,
+	// 		key: 'mask',
+	// 		add: true
+	// 	});
+	// this.spotlight.scale = 2;
 
-	this.lights.enable().setAmbientColor(0x000000);
-
+	//bg.mask = new Phaser.Display.Masks.BitmapMask(this, this.spotlight);
 	}
 
 	initializeAnimations(self)
@@ -172,16 +178,39 @@ class playScenes extends Phaser.Scene
 			frames: [ { key: 'finder', frame: 63 } ],
 			frameRate: 20
 		});
+
+		self.anims.create({
+			key: 'hider-display-walk',
+			frames: self.anims.generateFrameNumbers('finder', { start: 74, end: 75 }),
+			frameRate: 10,
+			repeat: -1
+		})
+
+		self.anims.create({	
+			key: 'hider-display-still',
+			frames: [ { key: 'hider-display', frame: 74 } ],
+			frameRate: 20
+		})
+
+		self.anims.create({
+			key: 'key-still',
+			frames: [ { key: 'key', frame: 71}],
+			frameRate: 20
+		})
 	}
 
 	addPlayer(self, playerInfo){
 		if(playerInfo.type == 'hider')
 		{
-			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'hider');
+			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'hider-display');
+			self.light = self.lights.addLight(200, 200, 100).setScrollFactor(1.0);
+			self.lights.enable().setAmbientColor(0xffffff);
 		}
 		else
 		{
 			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'finder');
+			self.light = self.lights.addLight(200, 200, 100).setScrollFactor(1.0);
+			self.lights.enable().setAmbientColor(0x000000);
 		}
 		self.playerType = playerInfo.type;
 		self.player.setCollideWorldBounds(true);
@@ -226,9 +255,10 @@ class playScenes extends Phaser.Scene
 			if (this.playerType == 'hider') {
 				updateNPC(this.socket);
 				updateKey(this, this.socket);
-				console.log(this.player.key);
+				// console.log(this.player.key);
 				if (this.player.key >= 3) {
 					this.doors.setCollisionByExclusion(-1, false);
+					this.doors.visible = false;
 				}
 			} else {
 				this.emitFireBall();
@@ -252,6 +282,7 @@ class playScenes extends Phaser.Scene
 		else
 		{
 			this.player.setVelocityX(0);
+			this.player.direction.x = 'none';
 		}
 
 		if(this.cursors.up.isDown)
@@ -269,9 +300,11 @@ class playScenes extends Phaser.Scene
 			this.player.setVelocityY(0);
 			this.player.direction.y = 'none';
 		}
-
-		this.light.x = this.player.x;
-		this.light.y = this.player.y;
+		if(this.light)
+		{
+			this.light.x = this.player.x;
+			this.light.y = this.player.y;
+		}
 
 		if(this.playerType == "hider")
 		{
@@ -293,12 +326,27 @@ class playScenes extends Phaser.Scene
 		}
 
 		const velocity = this.player.body.velocity;
+		
 		if(velocity.x != 0 || velocity.y != 0)
 		{
-			this.player.anims.play(this.playerType + '-walk', true);
+			if(this.playerType == 'hider')
+			{
+				this.player.anims.play(this.playerType + '-display-walk', true);
+			}
+			else
+			{
+				this.player.anims.play(this.playerType + '-walk', true);
+			}
 		} else
 		{
-			this.player.anims.play(this.playerType + '-still', true);
+			if(this.playerType == 'hider')
+			{
+				this.player.anims.play(this.playerType + '-display-still', true);
+			}
+			else
+			{
+				this.player.anims.play(this.playerType + '-still', true);
+			}
 		}
 	}
 
@@ -319,8 +367,11 @@ class playScenes extends Phaser.Scene
 				}
 				if (fireballDir.x === 'right') {
 					this.fire[i].body.setVelocityX(this.velocity*1.5);
-				} else {
+				} else if(fireballDir.x === 'left'){
 					this.fire[i].body.setVelocityX(-this.velocity*1.5);
+				} else if(fireballDir.y === 'none')
+				{
+					this.fire[i].body.setVelocityX(this.velocity*1.5);
 				}
 				if (this.fire[i].body.checkWorldBounds()) {
 					this.fire[i].destroy();
