@@ -282,7 +282,21 @@ class playScenes extends Phaser.Scene
 		else
 		{
 			this.player.setVelocityX(0);
-			this.player.direction.x = 'none';
+			if(this.player.direction.y == 'none')
+			{
+				if(this.player.flipX)
+				{
+					this.player.direction.x = 'left';
+				}
+				else
+				{
+					this.player.direction.x = 'right';
+				}
+			}
+			else 
+			{
+				this.player.direction.x = 'none';
+			}
 		}
 
 		if(this.cursors.up.isDown)
@@ -347,6 +361,11 @@ class playScenes extends Phaser.Scene
 			{
 				this.player.anims.play(this.playerType + '-still', true);
 			}
+		}
+
+		if(this.player.x < 540 || this.player.x > 1340)
+		{
+			this.socket.emit('game end','hider');
 		}
 	}
 

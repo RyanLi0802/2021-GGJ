@@ -19,6 +19,7 @@ import Title from './title.js';
                 gravity: {y : 0}
             }
         },
+        parent: 'phaser-game',
         socket: socket
     };
 
@@ -27,6 +28,9 @@ import Title from './title.js';
     game.scene.add('Title', Title);
     game.scene.start('Title', socket);
 
+    game.scale.pageAlignHorizontally = true;
+    game.scale.pageAlignVertically = true;
+    game.scale.refresh();
 
     // game.events.off("hidden", game.onHidden, game, false);
     // game.events.off("visible", game.onVisible, game, false);

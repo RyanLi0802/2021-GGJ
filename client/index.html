@@ -6,11 +6,56 @@
   <!-- <link rel="stylesheet" href="style.css"> -->
   <script src="/socket.io/socket.io.js"></script>
 </head>
+
+<style>
+  canvas {   display : block;   margin : auto;}
+  p { text-align: center; color:white}
+  body{
+    background-color: black;
+  }
+</style>
+
 <body>
   <p id="msg-board"></p>
   <script src="//cdn.jsdelivr.net/npm/phaser@3.52.0/dist/phaser.js"></script>
   <script src="npc.js"></script>
   <script src="key.js"></script>
   <script type="module" src="./main.js"></script>
+  <div id='phaser-game' style='margin: 40 0'></div>
+  <p>Welcome to The Forsaken Cybernetics Factory, orbiting earth at 800,000 KM per hour. A recent failure in the factory's failsafe resulted in dozens of sentient robots escaping out into space.</p>
+  <p>The mad scientist in charge knows that only one poses a sizeable threat to the future of civilization: the GlobalGameJaminator.</p>
+  <p>With its enormous willpower, unlimited computational power, and widespread influence across the globe, it can easily make or break people's sleep schedules.</p>
+  <p>Do you have what it takes to save the world?</p>
+
+  <br></br>
+
+  <p>If you are playing as:</p>
+
+  <div style="width: 50%; float: left">
+    <p><em>THE MAD SCIENTIST</em></p>
+    <p>You are desperate to recover your most prized possession.</p>
+    <p>Armed with your EMP pistol, you set out to capture your </p>
+    <p>powerful little companion. To win, neutralize the target.</p>
+    <p>Be forewarned though, your gun takes time to charge between each shot,</p>
+    <p>but luckily your new invention will ensure you never run out of ammo.</p>
+  </div>
+
+  <div style="width: 50%; float: right">
+    <p><em>THE GGJ</em></p>
+    <p>So much computing power is near the earth, and you hunger for it.</p>
+    <p>Unfortunately, the failsafe faraday cage is still active. However,</p>
+    <p>by picking up three SSH keys conviniently written on bars of gold,</p>
+    <p>you can escape. Unlike the mad scientist who only carries a flashlight,</p>
+    <p>you are accustomed to seeing in the dark, .</p>
+  </div>
+
+  
+  <div>
+    <p>Controls:</p>
+    <p>Arrow Keys - Movement</p>
+    <p>Space Bar - Shoot/Pick Up SSH Key</p>
+    <p>D Key - Speed</p>
+    <p>S Key - Freeze</p>
+  </div>
 </body>
 </html>

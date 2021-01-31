@@ -3,6 +3,8 @@ const keys = [];
 
 const origin = {x: 540, y: 160};
 
+
+
 const positions = [{x: origin.x + 13 * 8, y: origin.y + 10 * 8},
 {x: origin.x + 33 * 8, y: origin.y + 5 * 8},
 {x: origin.x + 53 * 8, y: origin.y + 5 * 8},
@@ -55,13 +57,16 @@ function updateKey(phaser, socket) {
     let keyInfo = [];
     for (let i = 0; i < keys.length; i++) {
       let key = keys[i];
-      if(key != null && phaser.cursors.space.isDown)
+      if(key != null && phaser.cursors.space.isDown && (2 - phaser.player.key >= 0))
       {
         let dis = (key.x - phaser.player.x) * (key.x - phaser.player.x) + (key.y - phaser.player.y) * (key.y - phaser.player.y);
         if (dis < 625) {
           phaser.player.key++;
           key.destroy();
           keys[i] = null;
+          alert("Key has been found. " + (3 - phaser.player.key) + " more keys left");
+          phaser.player.setVelocityY(0);
+          phaser.player.setVelocityX(0);
         }
       }
       if(key != null && key.anims != null) {
@@ -83,7 +88,15 @@ function onKeyCreate(phaser, keyInfo) {
     }
 }
 
+let oldNumber = NUM_OF_KEY;
+
 function onKeyUpdate(keyInfo) {
+    console.log(keys);
+    if(oldNumber > keyInfo.length)
+    {
+      alert('Key has been found.');
+      oldNumber--;
+    }
     for (let i = 0; i < keyInfo.length; i++) {
         let info = keyInfo[i];
         let key = keys[i];
