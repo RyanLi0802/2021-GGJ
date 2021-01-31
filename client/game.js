@@ -12,6 +12,7 @@ class playScenes extends Phaser.Scene
 		this.load.image('bg', 'assets/background.jpg');
 		this.load.image('tiles', 'assets/Itch release raw tileset.png');
 		this.load.tilemapTiledJSON('map', 'assets/map/mainMap.json');
+		this.load.spritesheet('finder', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 63, endFrame: 64});
 	}
 
     create()
@@ -19,7 +20,7 @@ class playScenes extends Phaser.Scene
 		let self = this;
 		this.socket = io();
 
-		this.velocity = 160;
+		this.velocity = 50;
 
 		this.otherPlayers = this.physics.add.group();
 
@@ -30,24 +31,17 @@ class playScenes extends Phaser.Scene
 
 		const map = this.make.tilemap({key: 'map'});
 		const tileset = map.addTilesetImage('testTileset', 'tiles');
+		const ground = map.createLayer('Ground', tileset, 0, 0);
 		const platforms = map.createLayer('Platforms', tileset, 0, 0);
+		platforms.setCollisionByExclusion(-1, true);
 
-		this.cameras.main.zoom = 2;
-
-		// this.fireball = this.physics.add.sprite(400, 250, 'fireball');
-		
-		/* this.ball = this.add.circle(400, 250, 10, 0xffffff, 1);
-		this.physics.add.existing(this.ball);
-		this.ball.body.setBounce(1, 1);
-		this.ball.body.setMaxSpeed(400);
-
-		this.ball.body.setCollideWorldBounds(true, 1, 1)
-		this.ball.body.onWorldBounds = true; */
+		this.cameras.main.zoom = 3;
+		this.cameras.main.roundPixels = true;
 
 		this.socket.on('currentPlayers', function(info){
 			info.players.forEach(function(player){
 				if(player.playerID === self.socket.id){
-					self.addPlayer(self, player);
+					self.addPlayer(self, player, platforms);
 				}
 				else 
 				{
@@ -79,7 +73,7 @@ class playScenes extends Phaser.Scene
 		this.cursors = this.input.keyboard.createCursorKeys();
 	}
 
-	addPlayer(self, playerInfo){
+	addPlayer(self, playerInfo, platforms){
 		if(playerInfo.type == 'hider')
 		{
 			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
@@ -87,12 +81,26 @@ class playScenes extends Phaser.Scene
 		}
 		else
 		{
-			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
+			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'finder');
 			self.playerType = 'finder';
+
+			self.anims.create({
+				key:'walk',
+				frames: this.anims.generateFrameNumbers('finder', { start: 63, end: 64 }),
+				frameRate: 10,
+				repeat: -1
+			})
+
+			this.anims.create({
+				key: 'still',
+				frames: [ { key: 'finder', frame: 63 } ],
+				frameRate: 20
+			});
 		}
 		self.player.setCollideWorldBounds(true);
 		self.physics.add.existing(self.player, true);
 		self.cameras.main.startFollow(self.player);
+		self.physics.add.collider(self.player, platforms);
 	}
 
 	addOtherPlayers(self, playerInfo)
@@ -151,6 +159,23 @@ class playScenes extends Phaser.Scene
 		else
 		{
 			this.player.setVelocityY(0);
+		}
+
+		if (this.player.body.velocity.x > 0) {
+			this.player.setFlipX(false);
+		} else if (this.player.body.velocity.x < 0) {
+			// otherwise, make them face the other side
+			this.player.setFlipX(true);
+		}
+
+		const velocity = this.player.body.velocity;
+		if(velocity.x != 0 || velocity.y != 0)
+		{
+			this.player.anims.play('walk', true);
+		}
+		else
+		{
+			this.player.anims.play('still', true);
 		}
 	}
 
