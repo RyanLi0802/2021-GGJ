@@ -1,8 +1,7 @@
 class playScenes extends Phaser.Scene
 {
-    constructor()
-    {
-        super();
+  constructor() {
+    super();
 	}
 
 	preload()
@@ -18,10 +17,14 @@ class playScenes extends Phaser.Scene
     {
 		let self = this;
 		this.socket = io();
+		this.gameEnd = false;
 
 		this.velocity = 160;
 
 		this.otherPlayers = this.physics.add.group();
+
+		this.fire = [];
+		this.time = 20;
 
 		let bg = this.add.image(0, 0, 'bg').setOrigin(0, 0);
 		this.cameras.main.setBounds(0, 0, bg.displayWidth, bg.displayHeight);
@@ -35,29 +38,29 @@ class playScenes extends Phaser.Scene
 
 		this.cameras.main.zoom = 2;
 
-		// this.fireball = this.physics.add.sprite(400, 250, 'fireball');
-		
-		/* this.ball = this.add.circle(400, 250, 10, 0xffffff, 1);
-		this.physics.add.existing(this.ball);
-		this.ball.body.setBounce(1, 1);
-		this.ball.body.setMaxSpeed(400);
-
-		this.ball.body.setCollideWorldBounds(true, 1, 1)
-		this.ball.body.onWorldBounds = true; */
-
 		this.socket.on('currentPlayers', function(info){
 			info.players.forEach(function(player){
 				if(player.playerID === self.socket.id){
 					self.addPlayer(self, player);
 				}
-				else 
+				else
 				{
-					self.addOtherPlayers(self, player);	
+					self.addOtherPlayers(self, player);
 				}
 			});
 
 			if (self.playerType == 'hider') {
 				createNPC(self, self.socket);
+				self.socket.on("fireball", fireball => {
+					let ball = self.physics.add.sprite(fireball.x, fireball.y, 'fireball').setScale(0.05);
+					ball.direction = fireball.direction;
+					self.fire.push(ball);
+					let i = self.fire.length - 1;
+					self.physics.add.collider(ball, self.platforms, _=> {
+						ball.destroy();
+						self.fire[i] = null;
+					});
+				});
 			} else {
 				self.socket.on("create npcs", npcInfo => {
 					onNPCCreate(self, npcInfo);
@@ -76,6 +79,15 @@ class playScenes extends Phaser.Scene
 			});
 		});
 
+		this.socket.on('game end', winner => {
+			self.gameEnd = true;
+			if (winner == 'finder') {
+				this.finderWins();
+			} else {
+				this.hiderWins();
+			}
+		})
+
 		this.cursors = this.input.keyboard.createCursorKeys();
 	}
 
@@ -91,6 +103,7 @@ class playScenes extends Phaser.Scene
 			self.playerType = 'finder';
 		}
 		self.player.setCollideWorldBounds(true);
+		self.player.direction = 'left';
 		self.physics.add.existing(self.player, true);
 		self.cameras.main.startFollow(self.player);
 		self.physics.add.collider(self.player, self.platforms);
@@ -108,34 +121,47 @@ class playScenes extends Phaser.Scene
 			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
 		}
 		otherPlayer.playerID = playerInfo.playerID;
+		otherPlayer.type = playerInfo.type;
+		otherPlayer.direction = 'left';
 		self.otherPlayers.add(otherPlayer);
 		self.physics.add.existing(otherPlayer, true);
 		self.physics.add.collider(otherPlayer, self.platforms);
 	}
-    
-    update()
-    {
-		let self = this;
-		if(this.player)
-		{
-			this.updateMovement();
-			this.updateServer();
-		}
 
-		if (this.playerType == 'hider') {
-			updateNPC(this.socket);
+
+
+  update()
+  {
+		if (!this.gameEnd) {
+			if (this.player)
+			{
+				this.updateMovement();
+				this.updateServer();
+			}
+			if (this.playerType == 'hider') {
+				updateNPC(this.socket);
+			} else {
+				if (this.time == 0) {
+					this.emitFireBall();
+					this.time = 20;
+				}
+				this.time--;
+			}
+			this.updateFireBall();
 		}
 	}
-	
+
 	updateMovement()
 	{
 		if(this.cursors.left.isDown)
-		{	
+		{
 			this.player.setVelocityX(-this.velocity);
+			this.player.direction = 'left';
 		}
 		else if (this.cursors.right.isDown)
 		{
 			this.player.setVelocityX(this.velocity);
+			this.player.direction = 'right';
 		}
 		else
 		{
@@ -145,16 +171,88 @@ class playScenes extends Phaser.Scene
 		if(this.cursors.up.isDown)
 		{
 			this.player.setVelocityY(-this.velocity);
+			this.player.direction = 'up';
 		}
 		else if (this.cursors.down.isDown)
 		{
 			this.player.setVelocityY(this.velocity);
+			this.player.direction = 'down';
 		}
 		else
 		{
 			this.player.setVelocityY(0);
 		}
 	}
+
+	updateFireBall() {
+		for (let i=0; i<this.fire.length; i++) {
+			if (this.fire[i] != null) {
+				let fireballDir = this.fire[i].direction;
+				if (fireballDir === 'up') {
+					this.fire[i].body.setVelocityY(-this.velocity*1.5);
+				} else if (fireballDir === 'down') {
+					this.fire[i].body.setVelocityY(this.velocity*1.5);
+				} else if (fireballDir === 'left') {
+					this.fire[i].body.setVelocityX(-this.velocity*1.5);
+				} else {
+					this.fire[i].body.setVelocityX(this.velocity*1.5);
+				}
+				if (this.fire[i].body.checkWorldBounds()) {
+					this.fire[i].destroy();
+					this.fire[i] = null;
+				}
+			}
+		}
+	}
+
+	emitFireBall()
+	{
+		let spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+		if (Phaser.Input.Keyboard.JustDown(spaceBar)) {
+			let fireball = this.physics.add.sprite(this.player.x, this.player.y, 'fireball').setScale(0.05);
+			fireball.direction = this.player.direction;
+			this.fire.push(fireball);
+			let i = this.fire.length - 1;
+			this.physics.add.collider(fireball, this.platforms, _=> {
+				fireball.destroy();
+				this.fire[i] = null;
+			});
+			this.otherPlayers.getChildren().forEach((otherPlayer) => {
+				if (otherPlayer.type == 'hider') {
+						this.physics.add.collider(fireball, otherPlayer, ()=> {
+							fireball.destroy();
+							this.fire[i] = null;
+							otherPlayer.destroy();
+							this.finderWins();
+							this.socket.emit("game end", "finder");
+						});
+					}
+			});
+			this.socket.emit("fireball", {x:fireball.x, y:fireball.y, direction:fireball.direction});
+		}
+	}
+
+	finderWins() {
+		if (this.playerType == "hider") {
+			this.player.destroy();
+			// say you lose
+		} else {
+			this.otherPlayers.getChildren().forEach(otherPlayer => {
+				if (otherPlayer.type == 'hider') {
+					otherPlayer.destroy();
+				}
+			});
+			// show you win.
+		}
+	}
+
+		hiderWins() {
+			if (this.playerType == 'hider') {
+				// show you win
+			} else {
+				// show you lose
+			}
+		}
 
 	updateServer()
 	{

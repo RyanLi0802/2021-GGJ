@@ -25,8 +25,8 @@ function updateNPC(socket) {
         if (npc.time <= 0) {
             npc.time = Math.floor(Math.random() * 100);
             npc.move = Math.floor(Math.random() * 7);
-        } 
-        
+        }
+
         if (npc.move == 1) { // go left
             npc.setVelocityX(-30);
         } else if (npc.move == 2) { // go up
@@ -60,7 +60,6 @@ function onNPCCreate(phaser, npcInfo) {
 }
 
 function onNPCUpdate(npcInfo) {
-    // console.log("received");
     for (let i = 0; i < npcInfo.length; i++) {
         let info = npcInfo[i];
         let npc = npcs[i];
