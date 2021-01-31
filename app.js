@@ -77,6 +77,22 @@ function onConnection(socket){
             }
         });
     });
+
+    socket.on('create npcs', data => {
+        io.in(socket.room).emit('create npcs', data);
+    });
+
+    socket.on('update npcs', data => {
+        io.in(socket.room).emit('update npcs', data);
+    });
+
+    socket.on('fireball', data => {
+        io.in(socket.room).emit('fireball', data);
+    })
+
+    socket.on('game end', data => {
+        io.in(socket.room).emit('game end', data);
+    })
 }
 
 function emitAssignment(socket) {
