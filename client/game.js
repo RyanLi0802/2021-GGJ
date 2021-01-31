@@ -11,6 +11,7 @@ class playScenes extends Phaser.Scene
 		this.load.image('bg', 'assets/background.jpg');
 		this.load.image('tiles', 'assets/Itch release raw tileset.png');
 		this.load.tilemapTiledJSON('map', 'assets/map/mainMap.json');
+		this.load.image('mask', 'assets/mask1.png');
 	}
 
     create()
@@ -33,7 +34,7 @@ class playScenes extends Phaser.Scene
 
 		const map = this.make.tilemap({key: 'map'});
 		const tileset = map.addTilesetImage('testTileset', 'tiles');
-		this.platforms = map.createLayer('Platforms', tileset, 0, 0);
+		this.platforms = map.createLayer('Platforms', tileset, 0, 0).setPipeline('Light2D');
 		this.platforms.setCollisionByExclusion(-1, true);
 
 		this.cameras.main.zoom = 2;
@@ -89,6 +90,10 @@ class playScenes extends Phaser.Scene
 		})
 
 		this.cursors = this.input.keyboard.createCursorKeys();
+
+		this.light = this.lights.addLight(0, 0, 100).setScrollFactor(1.0);
+
+    this.lights.enable().setAmbientColor(0x000000);
 	}
 
 	addPlayer(self, playerInfo){
@@ -114,11 +119,11 @@ class playScenes extends Phaser.Scene
 		let otherPlayer;
 		if(playerInfo.type == 'hider')
 		{
-			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25).setPipeline('Light2D');;
 		}
 		else
 		{
-			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25).setPipeline('Light2D');;
 		}
 		otherPlayer.playerID = playerInfo.playerID;
 		otherPlayer.type = playerInfo.type;
@@ -182,6 +187,8 @@ class playScenes extends Phaser.Scene
 		{
 			this.player.setVelocityY(0);
 		}
+		this.light.x = this.player.x;
+    this.light.y = this.player.y;
 	}
 
 	updateFireBall() {
