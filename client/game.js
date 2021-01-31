@@ -10,6 +10,8 @@ class playScenes extends Phaser.Scene
 		this.load.image('fireball', 'assets/fireball.png');
 		this.load.image('bullet', 'assets/bullet.png');
 		this.load.image('bg', 'assets/background.jpg');
+		this.load.image('shoe', 'assets/shoe.png');
+		this.load.image('ice', 'assets/ice.png');
 		this.load.image('tiles', 'assets/Itch release raw tileset.png');
 		this.load.tilemapTiledJSON('map', 'assets/map/mainMap.json');
 		this.load.bitmapFont('carrier_command', 'assets/carrier_command.png', 'assets/carrier_command.xml');
@@ -25,7 +27,10 @@ class playScenes extends Phaser.Scene
 		this.socket = socket;
 		this.gameEnd = false;
 
-		this.velocity = 200;
+		this.shoeBuff = false;
+		this.iceBuff = false;
+
+		this.velocity = 50;
 
 		this.otherPlayers = this.physics.add.group();
 
@@ -60,6 +65,8 @@ class playScenes extends Phaser.Scene
 					self.addOtherPlayers(self, player);
 				}
 			});
+
+			popup(self, self.socket);
 
 			if (self.playerType == 'hider') {
 				createNPC(self, self.socket);
@@ -236,11 +243,12 @@ class playScenes extends Phaser.Scene
 	update()
 	{
 		if (!this.gameEnd) {
-			if (this.player)
+			if (this.player && !frozen)
 			{
 				this.updateMovement();
 				//this.updateOtherPlayers();
 				this.updateServer();
+
 			}
 			if (this.playerType == 'hider') {
 				updateNPC(this.socket);
@@ -253,6 +261,23 @@ class playScenes extends Phaser.Scene
 			} else {
 				this.emitFireBall();
 			}
+
+			if (this.shoeBuff) {
+				let keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+				if (Phaser.Input.Keyboard.JustDown(keyD)) {
+					applyShoeBuff(this);
+					this.shoeBuff = false;
+				}
+			}
+
+			if (this.iceBuff) {
+				let keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+				if (Phaser.Input.Keyboard.JustDown(keyS)) {
+					applyIceBuff(this);
+					this.iceBuff = false;
+				}
+			}
+
 			this.updateFireBall();
 		}
 	}
@@ -350,17 +375,17 @@ class playScenes extends Phaser.Scene
 			if (this.fire[i] != null) {
 				let fireballDir = this.fire[i].direction;
 				if (fireballDir.y === 'up') {
-					this.fire[i].body.setVelocityY(-this.velocity*1.5);
+					this.fire[i].body.setVelocityY(-75);
 				} else if (fireballDir.y === 'down') {
-					this.fire[i].body.setVelocityY(this.velocity*1.5);
+					this.fire[i].body.setVelocityY(75);
 				}
 				if (fireballDir.x === 'right') {
-					this.fire[i].body.setVelocityX(this.velocity*1.5);
+					this.fire[i].body.setVelocityX(75);
 				} else if(fireballDir.x === 'left'){
-					this.fire[i].body.setVelocityX(-this.velocity*1.5);
+					this.fire[i].body.setVelocityX(-75);
 				} else if(fireballDir.y === 'none')
 				{
-					this.fire[i].body.setVelocityX(this.velocity*1.5);
+					this.fire[i].body.setVelocityX(75);
 				}
 				if (this.fire[i].body.checkWorldBounds()) {
 					this.fire[i].destroy();
@@ -374,7 +399,7 @@ class playScenes extends Phaser.Scene
 	emitFireBall()
 	{
 		let spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-		if (Phaser.Input.Keyboard.JustDown(spaceBar) && !this.gunFired) {
+		if (Phaser.Input.Keyboard.JustDown(spaceBar) && !this.gunFired && !frozen) {
 			let fireball = this.physics.add.sprite(this.player.x, this.player.y, 'bullet').setScale(0.5);
 			fireball.direction = {x: this.player.direction.x, y: this.player.direction.y};
 			this.fire.push(fireball);
