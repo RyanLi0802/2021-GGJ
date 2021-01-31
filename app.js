@@ -116,10 +116,6 @@ function onConnection(socket){
         io.in(socket.room).emit('game end', data);
     });
 
-    socket.on('create keys', data => {
-        io.in(socket.room).emit('create keys', data);
-    });
-
     socket.on('update keys', data => {
         io.in(socket.room).emit('update keys', data);
     });
