@@ -11,6 +11,7 @@ class playScenes extends Phaser.Scene
 		this.load.image('bg', 'assets/background.jpg');
 		this.load.image('tiles', 'assets/Itch release raw tileset.png');
 		this.load.tilemapTiledJSON('map', 'assets/map/mainMap.json');
+		this.load.image('mask', 'assets/mask1.png');
 		this.load.bitmapFont('carrier_command', 'assets/carrier_command.png', 'assets/carrier_command.xml');
 		this.load.spritesheet('finder', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 63, endFrame: 64});
 		this.load.spritesheet('hider', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 80, endFrame: 81});
@@ -116,6 +117,16 @@ class playScenes extends Phaser.Scene
 		this.initializeAnimations(self);
 
 		this.cursors = this.input.keyboard.createCursorKeys();
+
+		this.spotlight = this.make.sprite({
+			x: 200,
+			y: 200,
+			key: 'mask',
+			add: true
+		});
+	this.spotlight.scale = 2;
+
+	bg.mask = new Phaser.Display.Masks.BitmapMask(this, this.spotlight);
 	}
 
 	initializeAnimations(self)
@@ -180,6 +191,7 @@ class playScenes extends Phaser.Scene
 		self.otherPlayers.add(otherPlayer);
 		self.physics.add.existing(otherPlayer, true);
 		self.physics.add.collider(otherPlayer, self.platforms);
+		self.otherPlayers.mask = new Phaser.Display.Masks.BitmapMask(self, self.spotlight);
 	}
 
   update()
@@ -235,6 +247,11 @@ class playScenes extends Phaser.Scene
 		{
 			this.player.setVelocityY(0);
 		}
+
+		console.log(this.spotlight.x +" " +this.spotlight.y);
+		this.spotlight.x = this.player.x;
+		this.spotlight.y = this.player.y;
+
 		if(this.playerType == "hider")
 		{
 			if (this.player.body.velocity.x > 0) {
@@ -261,7 +278,7 @@ class playScenes extends Phaser.Scene
 		} else
 		{
 			this.player.anims.play(this.playerType + '-still', true);
-		}	
+		}
 	}
 
 	updateOtherPlayers(){
@@ -323,7 +340,7 @@ class playScenes extends Phaser.Scene
 		const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
 		if (this.playerType == "hider") {
 			this.player.destroy();
-			let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y, 
+			let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y,
 										'carrier_command',"You've Lost :-(",34);
 			this.physics.add.existing(bmpText, true);
 			bmpText.setScrollFactor(0);
@@ -333,7 +350,7 @@ class playScenes extends Phaser.Scene
 					otherPlayer.destroy();
 				}
 			});
-			let bmpText = this.add.bitmapText(this.player.x, this.player.y, 
+			let bmpText = this.add.bitmapText(this.player.x, this.player.y,
 										'carrier_command',"You win!", 34);
 			let text = this.add.text(this.player.x, this.player.y, "You win!");
 			this.physics.add.existing(bmpText, true);
@@ -347,12 +364,12 @@ class playScenes extends Phaser.Scene
 
 		hiderWins() {
 			if (this.playerType == 'hider') {
-				let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y, 
+				let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y,
 					'carrier_command',"You win!", 34);
 				bmpText.setScrollFactor(0);
 
 			} else {
-				let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y, 
+				let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y,
 					'carrier_command',"You've Lost :-(", 34);
 				bmpText.setScrollFactor(0);
 			}
