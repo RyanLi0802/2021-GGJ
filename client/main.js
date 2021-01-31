@@ -43,6 +43,9 @@ import Title from './title.js';
 
     function onAssignment(roomSize, type) {
         if (roomSize >= ROOM_SIZE) {
+            let role = type == hider ? "THE GGJ, " : "THE MAD SCIENTIST, " ;
+            let description = type == hider ? "escape from the factory!" : "find your GGJ!";
+
             $("msg-board").innerText = `You are the ${type}`;
             socket.off("assign", onAssignment);
             game.scene.stop("Title");
