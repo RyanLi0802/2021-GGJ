@@ -314,9 +314,9 @@ class playScenes extends Phaser.Scene
 					otherPlayer.destroy();
 				}
 			});
-			let bmpText = this.add.bitmapText(this.player.x, this.player.x, 
+			let bmpText = this.add.bitmapText(this.player.x, this.player.y, 
 										'carrier_command',"You win!", 34);
-			let text = this.add.text(this.player.x, this.player.x, "You win!");
+			let text = this.add.text(this.player.x, this.player.y, "You win!");
 			this.physics.add.existing(bmpText, true);
 			this.add.existing(bmpText, true);
 			this.physics.add.existing(text, true);
