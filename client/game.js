@@ -235,7 +235,7 @@ class playScenes extends Phaser.Scene
 			if (this.playerType == 'hider') {
 				updateNPC(this.socket);
 				updateKey(this, this.socket);
-				console.log(this.player.key);
+				// console.log(this.player.key);
 				if (this.player.key >= 3) {
 					this.doors.setCollisionByExclusion(-1, false);
 				}

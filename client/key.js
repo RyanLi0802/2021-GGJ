@@ -6,17 +6,34 @@ const keys = [];
 function createKey(phaser, socket) {
     let keyInfo = [];
     for (let i = 0; i < NUM_OF_KEY; i++) {
-        let xLoc = Math.random() * 500 + 250;
-        let yLoc = Math.random() * 500 + 250;
+        let xLoc = Math.random() * 600 + 660;
+        let yLoc = Math.random() * 600 + 240;
         let key = phaser.physics.add.sprite(xLoc, yLoc, 'test-sprite').setScale(0.025);
-        phasor.game.physics.arcade.overlap(sprite1, sprite2, this.someFunction, null, this);
+        // phaser.physics.overlap(key, phaser.platforms, function() {
+        //   key.destroy();
+        //   key = regenerateKey(phaser);
+        // }, null, this);
         phaser.physics.add.collider(key, phaser.platforms);
         keys.push(key);
+        console.log({x: key.x, y: key.y});
         keyInfo.push({x: key.x, y: key.y});
         phaser.physics.add.existing(key, true);
     }
     socket.emit("create keys", keyInfo);
 }
+
+function regenerateKey(phaser) {
+  let xLoc = Math.random() * 600 + 660;
+  let yLoc = Math.random() * 600 + 240;
+  let key = phaser.physics.add.sprite(xLoc, yLoc, 'test-sprite').setScale(0.025);
+  phaser.physics.overlap(key, phaser.platforms, function() {
+    key.destroy();
+    key = regenerateKey(phaser);
+  }, null, this);
+  return key;
+}
+
+
 
 function updateKey(phaser, socket) {
     let keyInfo = [];
