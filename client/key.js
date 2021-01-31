@@ -40,27 +40,12 @@ function createKey(phaser, socket) {
         } else {
           key = phaser.physics.add.sprite(xLoc, yLoc, 'key');
         }
-        // phaser.physics.overlap(key, phaser.platforms, function() {
-        //   key.destroy();
-        //   key = regenerateKey(phaser);
-        // }, null, this);
         phaser.physics.add.collider(key, phaser.platforms);
         keys.push(key);
         keyInfo.push({x: key.x, y: key.y});
         phaser.physics.add.existing(key, true);
     }
     socket.emit("create keys", keyInfo);
-}
-
-function regenerateKey(phaser) {
-  let xLoc = Math.random() * 600 + 660;
-  let yLoc = Math.random() * 600 + 240;
-  let key = phaser.physics.add.sprite(xLoc, yLoc, 'test-sprite').setScale(0.025).setPipeline('Light2D');
-  phaser.physics.overlap(key, phaser.platforms, function() {
-    key.destroy();
-    key = regenerateKey(phaser);
-  }, null, this);
-  return key;
 }
 
 function updateKey(phaser, socket) {
