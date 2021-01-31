@@ -7,9 +7,11 @@ import Game from './game.js';
         width: 500,
         height: 400,
         type: Phaser.AUTO,
+        pixelArt: true,
         audio: {
             disableWebAudio: true
         },
+        debug: true,
         physics: {
             default: 'arcade',
             arcade: {

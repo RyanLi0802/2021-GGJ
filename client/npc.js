@@ -6,7 +6,7 @@ const npcs = new Array();
 function createNPC(phaser, socket) {
     let npcInfo = new Array();
     for (let i = 0; i < NUM_OF_NPC; i++) {
-        let npc = phaser.physics.add.sprite(Math.random() * 1000, Math.random() * 1000, 'test-sprite').setScale(0.025).setPipeline('Light2D');
+        let npc = phaser.physics.add.sprite(Math.random() * 1000, Math.random() * 1000, 'test-sprite').setScale(0.025);
         npc.time = Math.floor(Math.random() * 100);
         npc.move = Math.floor(Math.random() * 7);
         npc.body.setCollideWorldBounds(true);
