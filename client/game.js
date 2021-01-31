@@ -18,13 +18,14 @@ class playScenes extends Phaser.Scene
     {
 		let self = this;
 		this.socket = io();
+		this.gameEnd = false;
 
 		this.velocity = 160;
 
 		this.otherPlayers = this.physics.add.group();
 
 		this.fire = [];
-		this.time = 30;
+		this.time = 20;
 
 		let bg = this.add.image(0, 0, 'bg').setOrigin(0, 0);
 		this.cameras.main.setBounds(0, 0, bg.displayWidth, bg.displayHeight);
@@ -33,7 +34,8 @@ class playScenes extends Phaser.Scene
 
 		const map = this.make.tilemap({key: 'map'});
 		const tileset = map.addTilesetImage('testTileset', 'tiles');
-		const platforms = map.createLayer('Platforms', tileset, 0, 0);
+		this.platforms = map.createLayer('Platforms', tileset, 0, 0);
+		this.platforms.setCollisionByExclusion(-1, true);
 
 		this.cameras.main.zoom = 2;
 
@@ -58,6 +60,16 @@ class playScenes extends Phaser.Scene
 
 			if (self.playerType == 'hider') {
 				createNPC(self, self.socket);
+				self.socket.on("fireball", fireball => {
+					let ball = self.physics.add.sprite(fireball.x, fireball.y, 'fireball').setScale(0.05);
+					ball.direction = fireball.direction;
+					self.fire.push(ball);
+					let i = self.fire.length - 1;
+					self.physics.add.collider(ball, self.platforms, _=> {
+						ball.destroy();
+						self.fire[i] = null;
+					});
+				});
 			} else {
 				self.socket.on("create npcs", npcInfo => {
 					onNPCCreate(self, npcInfo);
@@ -68,7 +80,6 @@ class playScenes extends Phaser.Scene
 
 		this.socket.on('playerMoved', function (playerInfo)
 		{
-			//console.log(playerInfo);
 			self.otherPlayers.getChildren().forEach(function(otherPlayer){
 				if(playerInfo.playerID === otherPlayer.playerID)
 				{
@@ -76,6 +87,15 @@ class playScenes extends Phaser.Scene
 				}
 			});
 		});
+
+		this.socket.on('game end', winner => {
+			self.gameEnd = true;
+			if (winner == 'finder') {
+				this.finderWins();
+			} else {
+				this.hiderWins();
+			}
+		})
 
 		this.cursors = this.input.keyboard.createCursorKeys();
 	}
@@ -95,6 +115,7 @@ class playScenes extends Phaser.Scene
 		self.player.direction = 'left';
 		self.physics.add.existing(self.player, true);
 		self.cameras.main.startFollow(self.player);
+		self.physics.add.collider(self.player, self.platforms);
 	}
 
 	addOtherPlayers(self, playerInfo)
@@ -113,25 +134,29 @@ class playScenes extends Phaser.Scene
 		otherPlayer.direction = 'left';
 		self.otherPlayers.add(otherPlayer);
 		self.physics.add.existing(otherPlayer, true);
+		self.physics.add.collider(otherPlayer, self.platforms);
 	}
 
-    update()
-    {
-		let self = this;
-		if (this.player)
-		{
-			this.updateMovement();
-			this.updateServer();
-		}
-		this.updateFireBall();
-		if (this.playerType == 'hider') {
-			updateNPC(this.socket);
-		} else {
-			if (this.time == 0) {
-				this.emitFireBall();
-				this.time = 30;
+
+
+  update()
+  {
+		if (!this.gameEnd) {
+			if (this.player)
+			{
+				this.updateMovement();
+				this.updateServer();
 			}
-			this.time--;
+			if (this.playerType == 'hider') {
+				updateNPC(this.socket);
+			} else {
+				if (this.time == 0) {
+					this.emitFireBall();
+					this.time = 20;
+				}
+				this.time--;
+			}
+			this.updateFireBall();
 		}
 	}
 
@@ -168,35 +193,24 @@ class playScenes extends Phaser.Scene
 		}
 	}
 
-	updateFireBall()
-	{
+	updateFireBall() {
 		for (let i=0; i<this.fire.length; i++) {
-			let fireballDir = this.fire[i].direction;
-			if (fireballDir === 'up') {
-				this.fire[i].body.setVelocityY(-this.velocity);
-			} else if (fireballDir === 'down') {
-				this.fire[i].body.setVelocityY(this.velocity);
-			} else if (fireballDir === 'left') {
-				this.fire[i].body.setVelocityX(-this.velocity);
-			} else {
-				this.fire[i].body.setVelocityX(this.velocity);
-			}
-			if (this.fire[i].body.checkWorldBounds()) {
-				console.log(this.fire.length);
-				this.fire[i].destroy();
-				this.fire.splice(i, 1);
-				console.log(this.fire.length);
-			}
-			this.otherPlayers.getChildren().forEach((otherPlayer) => {
-				if (otherPlayer.type == 'hider') {
-					this.physics.add.collider(this.fire[i], otherPlayer, ()=> {
-						console.log(this.fire);
-						this.fire[i].destroy();
-						this.fire.splice(i, 1);
-						otherPlayer.destroy();
-					});
+			if (this.fire[i] != null) {
+				let fireballDir = this.fire[i].direction;
+				if (fireballDir === 'up') {
+					this.fire[i].body.setVelocityY(-this.velocity*1.5);
+				} else if (fireballDir === 'down') {
+					this.fire[i].body.setVelocityY(this.velocity*1.5);
+				} else if (fireballDir === 'left') {
+					this.fire[i].body.setVelocityX(-this.velocity*1.5);
+				} else {
+					this.fire[i].body.setVelocityX(this.velocity*1.5);
 				}
-			});
+				if (this.fire[i].body.checkWorldBounds()) {
+					this.fire[i].destroy();
+					this.fire[i] = null;
+				}
+			}
 		}
 	}
 
@@ -207,8 +221,47 @@ class playScenes extends Phaser.Scene
 			let fireball = this.physics.add.sprite(this.player.x, this.player.y, 'fireball').setScale(0.05);
 			fireball.direction = this.player.direction;
 			this.fire.push(fireball);
+			let i = this.fire.length - 1;
+			this.physics.add.collider(fireball, this.platforms, _=> {
+				fireball.destroy();
+				this.fire[i] = null;
+			});
+			this.otherPlayers.getChildren().forEach((otherPlayer) => {
+				if (otherPlayer.type == 'hider') {
+						this.physics.add.collider(fireball, otherPlayer, ()=> {
+							fireball.destroy();
+							this.fire[i] = null;
+							otherPlayer.destroy();
+							this.finderWins();
+							this.socket.emit("game end", "finder");
+						});
+					}
+			});
+			this.socket.emit("fireball", {x:fireball.x, y:fireball.y, direction:fireball.direction});
 		}
 	}
+
+	finderWins() {
+		if (this.playerType == "hider") {
+			this.player.destroy();
+			// say you lose
+		} else {
+			this.otherPlayers.getChildren().forEach(otherPlayer => {
+				if (otherPlayer.type == 'hider') {
+					otherPlayer.destroy();
+				}
+			});
+			// show you win.
+		}
+	}
+
+		hiderWins() {
+			if (this.playerType == 'hider') {
+				// show you win
+			} else {
+				// show you lose
+			}
+		}
 
 	updateServer()
 	{
