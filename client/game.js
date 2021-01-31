@@ -29,6 +29,8 @@ class playScenes extends Phaser.Scene
 		this.otherPlayers = this.physics.add.group();
 
 		this.fire = [];
+		this.gunFired = false;
+		this.timer = 1500;
 
 		let bg = this.add.image(0, 0, 'bg').setOrigin(0, 0);
 		this.cameras.main.setBounds(0, 0, bg.displayWidth, bg.displayHeight);
@@ -218,9 +220,7 @@ class playScenes extends Phaser.Scene
 			if (this.playerType == 'hider') {
 				updateNPC(this.socket);
 			} else {
-				this.time.delayedCall(1500, () => {
-					this.emitFireBall();
-				})
+				this.emitFireBall();
 				// if (this.time == 0) {
 				// 	this.emitFireBall();
 				// 	this.time = 20;
@@ -310,10 +310,10 @@ class playScenes extends Phaser.Scene
 					this.fire[i].body.setVelocityY(-this.velocity*1.5);
 				} else if (fireballDir === 'down') {
 					this.fire[i].body.setVelocityY(this.velocity*1.5);
-				} else if (fireballDir === 'left') {
-					this.fire[i].body.setVelocityX(-this.velocity*1.5);
-				} else {
+				} else if (fireballDir === 'right') {
 					this.fire[i].body.setVelocityX(this.velocity*1.5);
+				} else {
+					this.fire[i].body.setVelocityX(-this.velocity*1.5);
 				}
 				if (this.fire[i].body.checkWorldBounds()) {
 					this.fire[i].destroy();
@@ -327,7 +327,7 @@ class playScenes extends Phaser.Scene
 	emitFireBall()
 	{
 		let spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-		if (Phaser.Input.Keyboard.JustDown(spaceBar)) {
+		if (Phaser.Input.Keyboard.JustDown(spaceBar) && !this.gunFired) {
 			let fireball = this.physics.add.sprite(this.player.x, this.player.y, 'bullet').setScale(0.5);
 			fireball.direction = this.player.direction;
 			this.fire.push(fireball);
@@ -348,6 +348,10 @@ class playScenes extends Phaser.Scene
 					}
 			});
 			this.socket.emit("fireball", {x:fireball.x, y:fireball.y, direction:fireball.direction});
+			this.gunFired = true;
+			this.time.delayedCall(1500, () => {
+				this.gunFired = false;
+			})
 		}
 	}
 
