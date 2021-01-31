@@ -3,6 +3,8 @@ let keys = [];
 
 const origin = {x: 540, y: 160};
 
+
+
 const positions = [{x: origin.x + 13 * 8, y: origin.y + 10 * 8},
 {x: origin.x + 33 * 8, y: origin.y + 5 * 8},
 {x: origin.x + 53 * 8, y: origin.y + 5 * 8},
@@ -72,6 +74,10 @@ function updateKey(phaser, socket) {
           phaser.player.key++;
           key.destroy();
           keys[i] = null;
+          alert("Key has been found. " + (3 - phaser.player.key) + " more keys left");
+          phaser.player.setVelocityY(0);
+          phaser.player.setVelocityX(0);
+          socket.emit("keyTouched", phaser.player.key);
         }
       }
       if(key != null && key.anims != null) {
@@ -111,4 +117,8 @@ function onKeyUpdate(keyInfo) {
           key.anims.play('key-still', true);
         }
     }
+}
+
+function onKeyTaken(data){
+  alert("Key has been found. " + (3 - data) + " more keys left");
 }
