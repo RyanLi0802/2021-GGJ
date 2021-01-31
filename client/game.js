@@ -261,6 +261,10 @@ class playScenes extends Phaser.Scene
 					this.doors.setCollisionByExclusion(-1, false);
 					this.doors.visible = false;
 				}
+				if(this.player.x < 540 || this.player.x > 1340)
+				{
+					this.socket.emit('game end','hider');
+				}
 			} else {
 				this.emitFireBall();
 			}
@@ -378,11 +382,6 @@ class playScenes extends Phaser.Scene
 			{
 				this.player.anims.play(this.playerType + '-still', true);
 			}
-		}
-
-		if(this.player.x < 540 || this.player.x > 1340)
-		{
-			this.socket.emit('game end','hider');
 		}
 	}
 
