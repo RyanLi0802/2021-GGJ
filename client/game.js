@@ -12,6 +12,7 @@ class playScenes extends Phaser.Scene
 		this.load.image('tiles', 'assets/Itch release raw tileset.png');
 		this.load.tilemapTiledJSON('map', 'assets/map/mainMap.json');
 		this.load.bitmapFont('carrier_command', 'assets/fonts/bitmapFonts/carrier_command.png', 'assets/fonts/bitmapFonts/carrier_command.xml');
+		this.load.spritesheet('finder', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 63, endFrame: 64});
 	}
 
     create()
@@ -34,7 +35,7 @@ class playScenes extends Phaser.Scene
 
 		const map = this.make.tilemap({key: 'map'});
 		const tileset = map.addTilesetImage('testTileset', 'tiles');
-		this.platforms = map.createLayer('Platforms', tileset, 0, 0).setPipeline('Light2D');
+		this.platforms = map.createLayer('Platforms', tileset, 0, 0);
 		this.platforms.setCollisionByExclusion(-1, true);
 
 		this.cameras.main.zoom = 2;
@@ -100,8 +101,20 @@ class playScenes extends Phaser.Scene
 		}
 		else
 		{
-			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
+			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'finder');
 			self.playerType = 'finder';
+			self.anims.create({
+				key:'walk',
+				frames: self.anims.generateFrameNumbers('finder', { start: 63, end: 64 }),
+				frameRate: 10,
+				repeat: -1
+			})
+
+			self.anims.create({
+				key: 'still',
+				frames: [ { key: 'finder', frame: 63 } ],
+				frameRate: 20
+			});
 		}
 		self.player.setCollideWorldBounds(true);
 		self.player.direction = 'left';
@@ -183,6 +196,24 @@ class playScenes extends Phaser.Scene
 		{
 			this.player.setVelocityY(0);
 		}
+
+		if (this.player.body.velocity.x > 0) {
+			this.player.setFlipX(false);
+		} else if (this.player.body.velocity.x < 0) {
+			// otherwise, make them face the other side
+			this.player.setFlipX(true);
+		}
+
+		const velocity = this.player.body.velocity;
+		if (this.playerType == 'finder') {
+			if(velocity.x != 0 || velocity.y != 0)
+			{
+				this.player.anims.play('walk', true);
+			} else
+			{
+				this.player.anims.play('still', true);
+			}
+		}
 	}
 
 	updateFireBall() {
@@ -236,7 +267,7 @@ class playScenes extends Phaser.Scene
 	finderWins() {
 		if (this.playerType == "hider") {
 			this.player.destroy();
-			bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y, 
+			let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y, 
 										'carrier_command',"You've Lost :-(",34);
 		} else {
 			this.otherPlayers.getChildren().forEach(otherPlayer => {
@@ -244,7 +275,7 @@ class playScenes extends Phaser.Scene
 					otherPlayer.destroy();
 				}
 			});
-			bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y, 
+			let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y, 
 										'carrier_command',"You win!",34);
 		}
 	}
