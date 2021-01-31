@@ -13,6 +13,10 @@ function createNPC(phaser, socket) {
         npcs.push(npc);
         npcInfo.push({x: npc.x, y: npc.y});
         phaser.physics.add.existing(npc, true);
+        phaser.physics.add.collider(npc, phaser.platforms, _=>{
+			npc.setVelocityX(0);
+			npc.setVelocityY(0);
+		});
     }
     socket.emit("create npcs", npcInfo);
 }
@@ -27,13 +31,13 @@ function updateNPC(socket) {
         } 
         
         if (npc.move == 1) { // go left
-            npc.x -= 1;
+            npc.setVelocityX(-20);
         } else if (npc.move == 2) { // go up
-            npc.y += 1;
+			npc.setVelocityY(20);
         } else if (npc.move == 3) { // go right
-            npc.x += 1;
+            npc.setVelocityX(20);
         } else if (npc.move == 4) { // go down
-            npc.y -= 1;
+			npc.setVelocityY(-20);
         }
         npc.time--;
         npcInfo.push({x: npc.x, y: npc.y});
@@ -50,6 +54,10 @@ function onNPCCreate(phaser, npcInfo) {
         let npc = phaser.physics.add.sprite(info.x, info.y, 'test-sprite').setScale(0.025);
         npc.body.setCollideWorldBounds(true);
         phaser.physics.add.existing(npc, true);
+        phaser.physics.add.collider(npc, phaser.platforms, _=>{
+			npc.setVelocityX(0);
+			npc.setVelocityY(0);
+        });
         npcs.push(npc);
     }
 }

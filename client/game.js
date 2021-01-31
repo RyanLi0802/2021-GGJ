@@ -30,7 +30,8 @@ class playScenes extends Phaser.Scene
 
 		const map = this.make.tilemap({key: 'map'});
 		const tileset = map.addTilesetImage('testTileset', 'tiles');
-		const platforms = map.createLayer('Platforms', tileset, 0, 0);
+		this.platforms = map.createLayer('Platforms', tileset, 0, 0);
+		this.platforms.setCollisionByExclusion(-1, true);
 
 		this.cameras.main.zoom = 2;
 
@@ -67,7 +68,6 @@ class playScenes extends Phaser.Scene
 
 		this.socket.on('playerMoved', function (playerInfo)
 		{
-			console.log(playerInfo);
 			self.otherPlayers.getChildren().forEach(function(otherPlayer){
 				if(playerInfo.playerID === otherPlayer.playerID)
 				{
@@ -93,6 +93,10 @@ class playScenes extends Phaser.Scene
 		self.player.setCollideWorldBounds(true);
 		self.physics.add.existing(self.player, true);
 		self.cameras.main.startFollow(self.player);
+		self.physics.add.collider(self.player, self.platforms, _=>{
+			self.player.setVelocityX(0);
+			self.player.setVelocityY(0);
+		});
 	}
 
 	addOtherPlayers(self, playerInfo)
@@ -109,6 +113,10 @@ class playScenes extends Phaser.Scene
 		otherPlayer.playerID = playerInfo.playerID;
 		self.otherPlayers.add(otherPlayer);
 		self.physics.add.existing(otherPlayer, true);
+		self.physics.add.collider(otherPlayer, self.platforms, _=>{
+			otherPlayer.setVelocityX(0);
+			otherPlayer.setVelocityY(0);
+		});
 	}
     
     update()
