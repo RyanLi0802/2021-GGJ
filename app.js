@@ -148,6 +148,10 @@ function onConnection(socket){
             }
         }); 
     });
+
+    socket.on('keyTouched', data => {
+        io.in(socket.room).emit('keyTaken', data);
+    })
 }
 
 function emitAssignment(socket) {

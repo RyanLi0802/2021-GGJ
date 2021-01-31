@@ -19,7 +19,7 @@ function popup(phaser, socket) {
             }
         });
     }
-    
+
     socket.on('consumed', itemInfo => {
         for (let i = 0; i < items.length; i++) {
             if (items[i] != null) {
@@ -73,7 +73,7 @@ function generateItems(phaser, socket) {
 
 
 function generateShoe(phaser, socket, x, y) {
-    
+
     let shoe = phaser.physics.add.sprite(x, y, 'shoe').setScale(0.50);
     shoe.type = "shoe";
     items.push(shoe);
@@ -124,7 +124,7 @@ function generateCube(phaser, socket, x, y) {
         emitConsumed(socket);
     });
     phaser.physics.add.existing(cube, true);
-    
+
     if (phaser.playerType == 'hider') {
         socket.emit('pop up', {x: cube.x, y: cube.y, type: "cube"});
     }
