@@ -6,7 +6,7 @@ const npcs = new Array();
 function createNPC(phaser, socket) {
     let npcInfo = new Array();
     for (let i = 0; i < NUM_OF_NPC; i++) {
-        let npc = phaser.physics.add.sprite(Math.random() * 1000, Math.random() * 1000, 'test-sprite').setScale(0.025);
+        let npc = phaser.physics.add.sprite(Math.random() * 1000, Math.random() * 1000, 'hider');
         npc.time = Math.floor(Math.random() * 100);
         npc.move = Math.floor(Math.random() * 7);
         npc.body.setCollideWorldBounds(true);
@@ -51,7 +51,7 @@ function updateNPC(socket) {
 function onNPCCreate(phaser, npcInfo) {
     for (let i = 0; i < npcInfo.length; i++) {
         let info = npcInfo[i];
-        let npc = phaser.physics.add.sprite(info.x, info.y, 'test-sprite').setScale(0.025);
+        let npc = phaser.physics.add.sprite(info.x, info.y, 'hider');
         npc.body.setCollideWorldBounds(true);
         phaser.physics.add.existing(npc, true);
         phaser.physics.add.collider(npc, phaser.platforms);

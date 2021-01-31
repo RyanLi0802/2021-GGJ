@@ -8,6 +8,7 @@ class playScenes extends Phaser.Scene
 	{
 		this.load.image('test-sprite', 'assets/test-sprite.png');
 		this.load.image('fireball', 'assets/fireball.png');
+		this.load.image('bullet', 'assets/bullet.png');
 		this.load.image('bg', 'assets/background.jpg');
 		this.load.image('tiles', 'assets/Itch release raw tileset.png');
 		this.load.tilemapTiledJSON('map', 'assets/map/mainMap.json');
@@ -28,7 +29,6 @@ class playScenes extends Phaser.Scene
 		this.otherPlayers = this.physics.add.group();
 
 		this.fire = [];
-		this.time = 20;
 
 		let bg = this.add.image(0, 0, 'bg').setOrigin(0, 0);
 		this.cameras.main.setBounds(0, 0, bg.displayWidth, bg.displayHeight);
@@ -37,11 +37,9 @@ class playScenes extends Phaser.Scene
 
 		const map = this.make.tilemap({key: 'map'});
 		const tileset = map.addTilesetImage('testTileset', 'tiles');
-		const ground = map.createLayer('Ground', tileset, 0, 0);
-		this.doors = map.createLayer('Doors', tileset, 0, 0);
-		this.platforms = map.createLayer('Platforms', tileset, 0, 0);
-
-		this.doors.setCollisionByExclusion(-1, true);
+		const ground = map.createLayer('Ground', tileset, 0, 0).setPipeline('Light2D');
+		this.doors = map.createLayer('Doors', tileset, 0, 0).setPipeline('Light2D');
+		this.platforms = map.createLayer('Platforms', tileset, 0, 0).setPipeline('Light2D');
 		this.platforms.setCollisionByExclusion(-1, true);
 
 		this.cameras.main.zoom = 2;
@@ -126,17 +124,19 @@ class playScenes extends Phaser.Scene
 
 		this.cursors = this.input.keyboard.createCursorKeys();
 
-		this.spotlight = this.make.sprite({
-			x: 400,
-			y: 300,
-			key: 'mask',
-			add: false
-		});
-		this.spotlight.scale = 1;
-		bg.mask = new Phaser.Display.Masks.BitmapMask(this, this.spotlight);
-		this.platforms.mask = new Phaser.Display.Masks.BitmapMask(this, this.spotlight);
-		ground.mask = new Phaser.Display.Masks.BitmapMask(this, this.spotlight);
-		this.otherPlayers.mask = new Phaser.Display.Masks.BitmapMask(this, this.spotlight);
+	// 	this.spotlight = this.make.sprite({
+	// 		x: 200,
+	// 		y: 200,
+	// 		key: 'mask',
+	// 		add: true
+	// 	});
+	// this.spotlight.scale = 2;
+
+	this.light = this.lights.addLight(200, 200, 100).setScrollFactor(1.0);
+
+	this.lights.enable().setAmbientColor(0x000000);
+
+	//bg.mask = new Phaser.Display.Masks.BitmapMask(this, this.spotlight);
 	}
 
 	initializeAnimations(self)
@@ -190,11 +190,11 @@ class playScenes extends Phaser.Scene
 		let otherPlayer;
 		if(playerInfo.type == 'hider')
 		{
-			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'hider');
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'hider').setPipeline('Light2D');
 		}
 		else
 		{
-			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'finder');
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'finder').setPipeline('Light2D');
 		}
 		otherPlayer.playerID = playerInfo.playerID;
 		otherPlayer.type = playerInfo.type;
@@ -217,11 +217,14 @@ class playScenes extends Phaser.Scene
 			if (this.playerType == 'hider') {
 				updateNPC(this.socket);
 			} else {
-				if (this.time == 0) {
+				this.time.delayedCall(1500, () => {
 					this.emitFireBall();
-					this.time = 20;
-				}
-				this.time--;
+				})
+				// if (this.time == 0) {
+				// 	this.emitFireBall();
+				// 	this.time = 20;
+				// }
+				// this.time--;
 			}
 			this.updateFireBall();
 		}
@@ -259,9 +262,9 @@ class playScenes extends Phaser.Scene
 			this.player.setVelocityY(0);
 		}
 
-		console.log(this.spotlight.x +" " +this.spotlight.y);
-		this.spotlight.x = this.player.x;
-		this.spotlight.y = this.player.y;
+		this.light.x = this.player.x;
+		this.light.y = this.player.y;
+		console.log(this.light.x + " " + this.player.x+" " +this.light.y+" " + this.player.y);
 
 		if(this.playerType == "hider")
 		{
@@ -315,6 +318,7 @@ class playScenes extends Phaser.Scene
 					this.fire[i].destroy();
 					this.fire[i] = null;
 				}
+				this.fire[i].angle += 1;
 			}
 		}
 	}
@@ -323,7 +327,7 @@ class playScenes extends Phaser.Scene
 	{
 		let spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 		if (Phaser.Input.Keyboard.JustDown(spaceBar)) {
-			let fireball = this.physics.add.sprite(this.player.x, this.player.y, 'fireball').setScale(0.05);
+			let fireball = this.physics.add.sprite(this.player.x, this.player.y, 'bullet').setScale(0.5);
 			fireball.direction = this.player.direction;
 			this.fire.push(fireball);
 			let i = this.fire.length - 1;
