@@ -74,7 +74,12 @@ function updateKey(phaser, socket) {
           phaser.player.key++;
           key.destroy();
           keys[i] = null;
-          alert("Key has been found. " + (3 - phaser.player.key) + " more keys left");
+          let remain = 3 - phaser.player.key;
+          if (remain <= 0 ) {
+            alert("A key has been found. No more keys needed! RUN AND ESCAPE!");
+          } else {
+            alert("A key has been found. Need " + remain + " more keys to escape.");
+          }
           phaser.player.setVelocityY(0);
           phaser.player.setVelocityX(0);
           socket.emit("keyTouched", phaser.player.key);
@@ -120,5 +125,10 @@ function onKeyUpdate(keyInfo) {
 }
 
 function onKeyTaken(data){
-  alert("Key has been found. " + (3 - data) + " more keys left");
+  let remain = 3 - data;
+  if (remain <= 0) {
+    alert("A Key has been found. The GGJ is going to escape! Stop him!");
+  } else {
+    alert("A Key has been found. The GGJ needs " + remain + " more keys left.");
+  }
 }
