@@ -25,7 +25,7 @@ class playScenes extends Phaser.Scene
 		this.socket = socket;
 		this.gameEnd = false;
 
-		this.velocity = 50;
+		this.velocity = 200;
 
 		this.otherPlayers = this.physics.add.group();
 
@@ -140,16 +140,6 @@ class playScenes extends Phaser.Scene
 		this.initializeAnimations(self);
 
 		this.cursors = this.input.keyboard.createCursorKeys();
-
-	// 	this.spotlight = this.make.sprite({
-	// 		x: 200,
-	// 		y: 200,
-	// 		key: 'mask',
-	// 		add: true
-	// 	});
-	// this.spotlight.scale = 2;
-
-	//bg.mask = new Phaser.Display.Masks.BitmapMask(this, this.spotlight);
 	}
 
 	initializeAnimations(self)
@@ -203,13 +193,13 @@ class playScenes extends Phaser.Scene
 		if(playerInfo.type == 'hider')
 		{
 			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'hider-display');
-			self.light = self.lights.addLight(200, 200, 100).setScrollFactor(1.0);
+			self.light = self.lights.addLight(250, 250, 0).setScrollFactor(1.0);
 			self.lights.enable().setAmbientColor(0xffffff);
 		}
 		else
 		{
 			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'finder');
-			self.light = self.lights.addLight(200, 200, 100).setScrollFactor(1.0);
+			self.light = self.lights.addLight(250, 250, 100).setScrollFactor(1.0);
 			self.lights.enable().setAmbientColor(0x000000);
 		}
 		self.playerType = playerInfo.type;
@@ -305,7 +295,6 @@ class playScenes extends Phaser.Scene
 			this.light.x = this.player.x;
 			this.light.y = this.player.y;
 		}
-
 		if(this.playerType == "hider")
 		{
 			if (this.player.body.velocity.x > 0) {
