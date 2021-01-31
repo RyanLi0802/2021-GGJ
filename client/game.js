@@ -249,6 +249,7 @@ class playScenes extends Phaser.Scene
 		else
 		{
 			this.player.setVelocityX(0);
+			this.player.direction.x = 'none';
 		}
 
 		if(this.cursors.up.isDown)
@@ -318,8 +319,11 @@ class playScenes extends Phaser.Scene
 				}
 				if (fireballDir.x === 'right') {
 					this.fire[i].body.setVelocityX(this.velocity*1.5);
-				} else {
+				} else if(fireballDir.x === 'left'){
 					this.fire[i].body.setVelocityX(-this.velocity*1.5);
+				} else if(fireballDir.y === 'none')
+				{
+					this.fire[i].body.setVelocityX(this.velocity*1.5);
 				}
 				if (this.fire[i].body.checkWorldBounds()) {
 					this.fire[i].destroy();
