@@ -75,7 +75,7 @@ function onNPCUpdate(npcInfo) {
         let npc = npcs[i];
         npc.x = info.x;
         npc.y = info.y;
-        if (info.move > 0 && info.move < 4) {
+        if (info.move > 0 && info.move <= 4) {
             npc.anims.play('hider-walk', true);
         } else {
             npc.anims.play('hider-still', true);
