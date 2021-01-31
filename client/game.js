@@ -37,8 +37,10 @@ class playScenes extends Phaser.Scene
 		const map = this.make.tilemap({key: 'map'});
 		const tileset = map.addTilesetImage('testTileset', 'tiles');
 		const ground = map.createLayer('Ground', tileset, 0, 0);
-		const doors = map.createLayer('Doors', tileset, 0, 0);
+		this.doors = map.createLayer('Doors', tileset, 0, 0);
 		this.platforms = map.createLayer('Platforms', tileset, 0, 0);
+
+		this.doors.setCollisionByExclusion(-1, true);
 		this.platforms.setCollisionByExclusion(-1, true);
 
 		this.cameras.main.zoom = 2;
@@ -161,6 +163,7 @@ class playScenes extends Phaser.Scene
 		self.physics.add.existing(self.player, true);
 		self.cameras.main.startFollow(self.player);
 		self.physics.add.collider(self.player, self.platforms);
+		self.physics.add.collider(self.player, self.doors);
 	}
 
 	addOtherPlayers(self, playerInfo)
@@ -180,6 +183,7 @@ class playScenes extends Phaser.Scene
 		self.otherPlayers.add(otherPlayer);
 		self.physics.add.existing(otherPlayer, true);
 		self.physics.add.collider(otherPlayer, self.platforms);
+		self.physics.add.collider(otherPlayer, self.doors);
 	}
 
   update()
