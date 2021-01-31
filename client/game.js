@@ -9,7 +9,7 @@ class playScenes extends Phaser.Scene
 	{
 		this.load.image('test-sprite', 'assets/test-sprite.png');
 		this.load.image('fireball', 'assets/fireball.png');
-
+		this.load.image('bg', 'assets/background.jpg');
 		this.load.image('tiles', 'assets/Itch release raw tileset.png');
 		this.load.tilemapTiledJSON('map', 'assets/map/mainMap.json');
 	}
@@ -23,9 +23,17 @@ class playScenes extends Phaser.Scene
 
 		this.otherPlayers = this.physics.add.group();
 
+		let bg = this.add.image(0, 0, 'bg').setOrigin(0, 0);
+		this.cameras.main.setBounds(0, 0, bg.displayWidth, bg.displayHeight);
+
+		this.physics.world.setBounds(0, 0, 1000, 1000);
+
 		const map = this.make.tilemap({key: 'map'});
 		const tileset = map.addTilesetImage('testTileset', 'tiles');
 		const platforms = map.createLayer('Platforms', tileset, 0, 0);
+
+		this.cameras.main.zoom = 2;
+
 		// this.fireball = this.physics.add.sprite(400, 250, 'fireball');
 		
 		/* this.ball = this.add.circle(400, 250, 10, 0xffffff, 1);
@@ -84,6 +92,7 @@ class playScenes extends Phaser.Scene
 		}
 		self.player.setCollideWorldBounds(true);
 		self.physics.add.existing(self.player, true);
+		self.cameras.main.startFollow(self.player);
 	}
 
 	addOtherPlayers(self, playerInfo)

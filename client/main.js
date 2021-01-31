@@ -4,8 +4,8 @@ import Game from './game.js';
 
     /* PHASER CODE */
     const config = {
-        width: 1000,
-        height: 1000,
+        width: 800,
+        height: 500,
         type: Phaser.AUTO,
         audio: {
             disableWebAudio: true
