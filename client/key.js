@@ -1,4 +1,4 @@
-const NUM_OF_KEY = 10;
+const NUM_OF_KEY = 4;
 let keys = [];
 
 const origin = {x: 540, y: 160};
