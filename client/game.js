@@ -35,13 +35,13 @@ class playScenes extends Phaser.Scene
 		let bg = this.add.image(0, 0, 'bg').setOrigin(0, 0);
 		this.cameras.main.setBounds(0, 0, bg.displayWidth, bg.displayHeight);
 
-		this.physics.world.setBounds(0, 0, 1000, 1000);
+		this.physics.world.setBounds(560, 140, 800, 800);
 
 		const map = this.make.tilemap({key: 'map'});
 		const tileset = map.addTilesetImage('testTileset', 'tiles');
-		const ground = map.createLayer('Ground', tileset, 0, 0).setPipeline('Light2D');
-		this.doors = map.createLayer('Doors', tileset, 0, 0).setPipeline('Light2D');
-		this.platforms = map.createLayer('Platforms', tileset, 0, 0).setPipeline('Light2D');
+		const ground = map.createLayer('Ground', tileset, 560, 140).setPipeline('Light2D');
+		this.doors = map.createLayer('Doors', tileset, 560, 140).setPipeline('Light2D');
+		this.platforms = map.createLayer('Platforms', tileset, 560, 140).setPipeline('Light2D');
 		this.platforms.setCollisionByExclusion(-1, true);
 		this.doors.setCollisionByExclusion(-1, true);
 
@@ -64,7 +64,7 @@ class playScenes extends Phaser.Scene
 			if (self.playerType == 'hider') {
 				createNPC(self, self.socket);
 				self.socket.on("fireball", fireball => {
-					let ball = self.physics.add.sprite(fireball.x, fireball.y, 'fireball').setScale(0.05);
+					let ball = self.physics.add.sprite(fireball.x, fireball.y, 'bullet').setScale(0.5);
 					ball.direction = fireball.direction;
 					self.fire.push(ball);
 					let i = self.fire.length - 1;
@@ -190,7 +190,7 @@ class playScenes extends Phaser.Scene
 		}
 		self.playerType = playerInfo.type;
 		self.player.setCollideWorldBounds(true);
-		self.player.direction = 'left';
+		self.player.direction = {x: 'left', y: 'none'};
 		self.physics.add.existing(self.player, true);
 		self.cameras.main.startFollow(self.player);
 		self.physics.add.collider(self.player, self.platforms);
@@ -240,12 +240,12 @@ class playScenes extends Phaser.Scene
 		if(this.cursors.left.isDown)
 		{
 			this.player.setVelocityX(-this.velocity);
-			this.player.direction = 'left';
+			this.player.direction.x = 'left';
 		}
 		else if (this.cursors.right.isDown)
 		{
 			this.player.setVelocityX(this.velocity);
-			this.player.direction = 'right';
+			this.player.direction.x = 'right';
 		}
 		else
 		{
@@ -255,16 +255,17 @@ class playScenes extends Phaser.Scene
 		if(this.cursors.up.isDown)
 		{
 			this.player.setVelocityY(-this.velocity);
-			this.player.direction = 'up';
+			this.player.direction.y = 'up';
 		}
 		else if (this.cursors.down.isDown)
 		{
 			this.player.setVelocityY(this.velocity);
-			this.player.direction = 'down';
+			this.player.direction.y = 'down';
 		}
 		else
 		{
 			this.player.setVelocityY(0);
+			this.player.direction.y = 'none';
 		}
 
 		this.light.x = this.player.x;
@@ -309,11 +310,12 @@ class playScenes extends Phaser.Scene
 		for (let i=0; i<this.fire.length; i++) {
 			if (this.fire[i] != null) {
 				let fireballDir = this.fire[i].direction;
-				if (fireballDir === 'up') {
+				if (fireballDir.y === 'up') {
 					this.fire[i].body.setVelocityY(-this.velocity*1.5);
-				} else if (fireballDir === 'down') {
+				} else if (fireballDir.y === 'down') {
 					this.fire[i].body.setVelocityY(this.velocity*1.5);
-				} else if (fireballDir === 'right') {
+				}
+				if (fireballDir.x === 'right') {
 					this.fire[i].body.setVelocityX(this.velocity*1.5);
 				} else {
 					this.fire[i].body.setVelocityX(-this.velocity*1.5);
@@ -332,7 +334,7 @@ class playScenes extends Phaser.Scene
 		let spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 		if (Phaser.Input.Keyboard.JustDown(spaceBar) && !this.gunFired) {
 			let fireball = this.physics.add.sprite(this.player.x, this.player.y, 'bullet').setScale(0.5);
-			fireball.direction = this.player.direction;
+			fireball.direction = {x: this.player.direction.x, y: this.player.direction.y};
 			this.fire.push(fireball);
 			let i = this.fire.length - 1;
 			this.physics.add.collider(fireball, this.platforms, _=> {
