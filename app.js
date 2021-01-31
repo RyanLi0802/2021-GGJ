@@ -50,14 +50,11 @@ function onConnection(socket){
     }
 
     // console.log(io.sockets.adapter.rooms);
-    console.log(1);
-    console.log(socket.id);
     emitAssignment(socket);
 
     socket.on("disconnecting", _ => {
         rooms.get(socket.room).players.remove(socket.id);
         if (!rooms.get(socket.room).gameStarted) {
-            console.log(2);
             emitAssignment(socket);
         }
         if (rooms.get(socket.room).players <= 0) {
@@ -82,7 +79,10 @@ function onConnection(socket){
     });
 
     socket.on('create npcs', data => {
-        io.in(socket.room).emit('create npcs', data);
+        setTimeout(_=> {
+            io.in(socket.room).emit('create npcs', data);
+        }, 3000);
+        // console.log(data);
     });
 
     socket.on('update npcs', data => {
@@ -94,6 +94,8 @@ function onConnection(socket){
     });
 
     socket.on('game end', data => {
+        console.log("game end");
+        console.log(data);
         io.in(socket.room).emit('game end', data);
     });
 
@@ -104,7 +106,7 @@ function onConnection(socket){
 }
 
 function emitAssignment(socket) {
-    console.log(rooms.get(socket.room).players);
+    // console.log(rooms.get(socket.room).players);
     let roomSize = rooms.get(socket.room).players.length;
     if (roomSize >= ROOM_SIZE) {
         for (let i = 0; i < roomSize; i++) {

@@ -77,7 +77,6 @@ class playScenes extends Phaser.Scene
 				self.socket.on("create npcs", npcInfo => {
 					onNPCCreate(self, npcInfo);
 				});
-				self.socket.on("update npcs", onNPCUpdate);
 			}
 		});
 
@@ -365,7 +364,7 @@ class playScenes extends Phaser.Scene
 		if (this.playerType == "hider") {
 			let bmpText = this.add.bitmapText(this.player.x - 140 - velX, this.player.y - 100,
 				'carrier_command',"You've Lost :-(", 10);
-			this.physics.add.existing(bmpText, true);
+			let text = this.add.text(this.player.x - 70, this.player.y - 40, "You've Lost :-(");
 			bmpText.setScrollFactor(0);
 			this.player.destroy();
 		} else {
@@ -374,9 +373,9 @@ class playScenes extends Phaser.Scene
 					otherPlayer.destroy();
 				}
 			});
-			let bmpText = this.add.bitmapText(this.player.x - 200 + velX, this.player.y - 100,
+			let bmpText = this.add.bitmapText(this.player.x, this.player.y,
 										'carrier_command',"You Win!", 21);
-			// let text = this.add.text(this.player.x, this.player.y, "You win!");
+			let text = this.add.text(this.player.x - 40, this.player.y - 40, "You win!");
 			// this.physics.add.existing(bmpText, true);
 			// this.add.existing(bmpText, true);
 			// this.physics.add.existing(text, true);
@@ -390,12 +389,14 @@ class playScenes extends Phaser.Scene
 		if (this.playerType == 'hider') {
 			let bmpText = this.add.bitmapText(this.player.x - 200, this.player.y - 100,
 				'carrier_command',"You Win!", 21);
+			let text = this.add.text(this.player.x - 40, this.player.y - 40, "You win!");
 			bmpText.setScrollFactor(0);
 
 		} else {
 			let bmpText = this.add.bitmapText(this.player.x - 140, this.player.y - 100,
 				'carrier_command',"You've Lost :-(", 10);
 			bmpText.setScrollFactor(0);
+			let text = this.add.text(this.player.x - 60, this.player.y - 40, "You've Lost :-(");
 		}
 	}
 	
