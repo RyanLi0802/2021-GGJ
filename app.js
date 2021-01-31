@@ -50,10 +50,20 @@ function onConnection(socket){
     }
 
     // console.log(io.sockets.adapter.rooms);
+    console.log(1);
     emitAssignment(socket);
 
     socket.on("disconnecting", _ => {
-        rooms.get(socket.room).players.remove(socket.id);
+        console.log(2);
+        console.log(rooms.get(socket.room).players);
+        let players = rooms.get(socket.room).players
+        // rooms.get(socket.room).players.remove(socket.id);
+        for (let i = 0; i < players.length; i++) {
+            if (socket.id == players[i].playerID) {
+                players.splice(i--, 1);
+            }
+        }
+        console.log(rooms.get(socket.room).players);
         if (!rooms.get(socket.room).gameStarted) {
             emitAssignment(socket);
         }
@@ -106,7 +116,7 @@ function onConnection(socket){
 }
 
 function emitAssignment(socket) {
-    // console.log(rooms.get(socket.room).players);
+    console.log(rooms.get(socket.room).players);
     let roomSize = rooms.get(socket.room).players.length;
     if (roomSize >= ROOM_SIZE) {
         for (let i = 0; i < roomSize; i++) {
@@ -128,6 +138,7 @@ Array.prototype.remove = function() {
             this.splice(ax, 1);
         }
     }
+    
     return this;
 };
 

@@ -1,4 +1,5 @@
 import Game from './game.js';
+import Title from './title.js';
 (function() {
     var socket = io();
     /* PHASER CODE */
@@ -23,6 +24,8 @@ import Game from './game.js';
 
     const game = new Phaser.Game(config);
     game.scene.add('Game', Game);
+    game.scene.add('Title', Title);
+    game.scene.start('Title', socket);
 
 
     // game.events.off("hidden", game.onHidden, game, false);
@@ -40,6 +43,7 @@ import Game from './game.js';
             $("msg-board").innerText = `Let's start the game!
             My id is ${myId}`;
             socket.off("assign", onAssignment);
+            game.scene.stop("Title");
             game.scene.start('Game', socket);
         } else {
             $("msg-board").innerText = `finding players: ${roomSize}/${ROOM_SIZE}`;
