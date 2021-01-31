@@ -28,13 +28,13 @@ function updateNPC(socket) {
         } 
         
         if (npc.move == 1) { // go left
-            npc.setVelocityX(-20);
+            npc.setVelocityX(-30);
         } else if (npc.move == 2) { // go up
-			npc.setVelocityY(20);
+			npc.setVelocityY(30);
         } else if (npc.move == 3) { // go right
-            npc.setVelocityX(20);
+            npc.setVelocityX(30);
         } else if (npc.move == 4) { // go down
-			npc.setVelocityY(-20);
+			npc.setVelocityY(-30);
         } else {
             npc.setVelocityX(0);
             npc.setVelocityY(0);
