@@ -73,7 +73,7 @@ function onConnection(socket){
             }
             else
             {
-                io.to(player.playerID).emit("playerMoved", {playerID: socket.id, x: movementData.x, y: movementData.y, movementData: movementData.velocity});
+                io.to(player.playerID).emit("playerMoved", {playerID: socket.id, x: movementData.x, y: movementData.y, velocity: movementData.velocity});
             }
         });
     });

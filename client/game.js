@@ -76,10 +76,29 @@ class playScenes extends Phaser.Scene
 
 		this.socket.on('playerMoved', function (playerInfo)
 		{
+			console.log(playerInfo.velocity);
 			self.otherPlayers.getChildren().forEach(function(otherPlayer){
 				if(playerInfo.playerID === otherPlayer.playerID)
 				{
 					otherPlayer.setPosition(playerInfo.x, playerInfo.y);
+					if(otherPlayer.type == "hider")
+					{
+						if (playerInfo.velocity.x > 0) {
+							otherPlayer.setFlipX(true);
+						} else if(playerInfo.velocity.x < 0) {
+							// otherwise, make them face the other side
+							otherPlayer.setFlipX(false);
+						}
+					}
+					else
+					{
+						if (playerInfo.velocity.x > 0) {
+							otherPlayer.setFlipX(false);
+						} else if(playerInfo.velocity.x < 0){
+							// otherwise, make them face the other side
+							otherPlayer.setFlipX(true);
+						}
+					}
 					otherPlayer.anims.play(otherPlayer.type + '-walk', true);
 				}
 			});
@@ -247,7 +266,7 @@ class playScenes extends Phaser.Scene
 
 	updateOtherPlayers(){
 		this.otherPlayers.getChildren().forEach(function(otherPlayer){
-			
+			otherPlayer.anims.play(otherPlayer.type + '-still', true);
 		});
 	}
 
