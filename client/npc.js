@@ -29,18 +29,25 @@ function updateNPC(socket) {
 
         if (npc.move == 1) { // go left
             npc.setVelocityX(-30);
+            npc.anims.play('hider-walk', true);
+            npc.setFlipX(false);
         } else if (npc.move == 2) { // go up
-			npc.setVelocityY(30);
+            npc.setVelocityY(30);
+            npc.anims.play('hider-walk', true);
         } else if (npc.move == 3) { // go right
             npc.setVelocityX(30);
+            npc.anims.play('hider-walk', true);
+            npc.setFlipX(true);
         } else if (npc.move == 4) { // go down
-			npc.setVelocityY(-30);
+            npc.setVelocityY(-30);
+            npc.anims.play('hider-walk', true);
         } else {
             npc.setVelocityX(0);
             npc.setVelocityY(0);
+            npc.anims.play('hider-still', true);
         }
         npc.time--;
-        npcInfo.push({x: npc.x, y: npc.y});
+        npcInfo.push({x: npc.x, y: npc.y, move: npc.move});
     }
 
     socket.emit("update npcs", npcInfo);
@@ -57,6 +64,7 @@ function onNPCCreate(phaser, npcInfo) {
         phaser.physics.add.collider(npc, phaser.platforms);
         npcs.push(npc);
     }
+    phaser.socket.on("update npcs", onNPCUpdate);
 }
 
 function onNPCUpdate(npcInfo) {
@@ -65,5 +73,16 @@ function onNPCUpdate(npcInfo) {
         let npc = npcs[i];
         npc.x = info.x;
         npc.y = info.y;
+        if (info.move > 0 && info.move < 4) {
+            npc.anims.play('hider-walk', true);
+        } else {
+            npc.anims.play('hider-still', true);
+        }
+
+        if (info.move == 1) {
+            npc.setFlipX(false);
+        } else if (info.move == 3) {
+            npc.setFlipX(true);
+        }
     }
 }

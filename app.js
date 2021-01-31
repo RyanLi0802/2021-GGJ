@@ -24,7 +24,7 @@ function onConnection(socket){
           socket.isassigned = true;
           socket.room = room;
           socket.join(room);
-          players.push({playerID: socket.id, x: 500, y: 250, type: 'finder'});
+          players.push({playerID: socket.id, x: 960, y: 640, type: 'finder'});
           //console.log(rooms);
         }
     });
@@ -39,7 +39,7 @@ function onConnection(socket){
                 {
                     angle: angle
                 },
-                players: [{playerID: socket.id, x: 300, y: 250, type: 'hider'}]
+                players: [{playerID: socket.id, x: 960, y: 300, type: 'hider'}]
             }
         );
         socket.room = room;
@@ -50,10 +50,20 @@ function onConnection(socket){
     }
 
     // console.log(io.sockets.adapter.rooms);
+    console.log(1);
     emitAssignment(socket);
 
     socket.on("disconnecting", _ => {
-        rooms.get(socket.room).players.remove(socket.id);
+        console.log(2);
+        console.log(rooms.get(socket.room).players);
+        let players = rooms.get(socket.room).players
+        // rooms.get(socket.room).players.remove(socket.id);
+        for (let i = 0; i < players.length; i++) {
+            if (socket.id == players[i].playerID) {
+                players.splice(i--, 1);
+            }
+        }
+        console.log(rooms.get(socket.room).players);
         if (!rooms.get(socket.room).gameStarted) {
             emitAssignment(socket);
         }
@@ -79,7 +89,10 @@ function onConnection(socket){
     });
 
     socket.on('create npcs', data => {
-        io.in(socket.room).emit('create npcs', data);
+        setTimeout(_=> {
+            io.in(socket.room).emit('create npcs', data);
+        }, 3000);
+        // console.log(data);
     });
 
     socket.on('update npcs', data => {
@@ -91,6 +104,8 @@ function onConnection(socket){
     });
 
     socket.on('game end', data => {
+        console.log("game end");
+        console.log(data);
         io.in(socket.room).emit('game end', data);
     });
 
@@ -101,17 +116,22 @@ function onConnection(socket){
     socket.on('update keys', data => {
         io.in(socket.room).emit('update keys', data);
     });
+
+    socket.on('scene created', _=>{
+        //Sends information
+        io.to(socket.id).emit('currentPlayers', rooms.get(socket.room));
+    });
 }
 
 function emitAssignment(socket) {
+    console.log(rooms.get(socket.room).players);
     let roomSize = rooms.get(socket.room).players.length;
     if (roomSize >= ROOM_SIZE) {
         for (let i = 0; i < roomSize; i++) {
             let id = rooms.get(socket.room).players[i].playerID;
             io.to(id).emit("assign", roomSize, i+1);
 
-            //Sends information
-            io.to(id).emit("currentPlayers", rooms.get(socket.room));
+            // io.to(id).emit("currentPlayers", rooms.get(socket.room));
         }
         rooms.get(socket.room).gameStarted = true;
     }

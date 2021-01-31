@@ -8,6 +8,7 @@ class playScenes extends Phaser.Scene
 	{
 		this.load.image('test-sprite', 'assets/test-sprite.png');
 		this.load.image('fireball', 'assets/fireball.png');
+		this.load.image('bullet', 'assets/bullet.png');
 		this.load.image('bg', 'assets/background.jpg');
 		this.load.image('tiles', 'assets/Itch release raw tileset.png');
 		this.load.tilemapTiledJSON('map', 'assets/map/mainMap.json');
@@ -16,10 +17,10 @@ class playScenes extends Phaser.Scene
 		this.load.spritesheet('hider', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 80, endFrame: 81});
 	}
 
-    create()
+    create(socket)
     {
 		let self = this;
-		this.socket = io();
+		this.socket = socket;
 		this.gameEnd = false;
 
 		this.velocity = 50;
@@ -27,22 +28,26 @@ class playScenes extends Phaser.Scene
 		this.otherPlayers = this.physics.add.group();
 
 		this.fire = [];
-		this.time = 20;
+		this.gunFired = false;
+		this.timer = 1500;
 
 		let bg = this.add.image(0, 0, 'bg').setOrigin(0, 0);
 		this.cameras.main.setBounds(0, 0, bg.displayWidth, bg.displayHeight);
 
-		this.physics.world.setBounds(0, 0, 1000, 1000);
+		this.physics.world.setBounds(560, 140, 800, 800);
 
 		const map = this.make.tilemap({key: 'map'});
 		const tileset = map.addTilesetImage('testTileset', 'tiles');
-		const ground = map.createLayer('Ground', tileset, 0, 0).setPipeline('Light2D');
-		this.doors = map.createLayer('Doors', tileset, 0, 0).setPipeline('Light2D');
-		this.platforms = map.createLayer('Platforms', tileset, 0, 0).setPipeline('Light2D');
+		const ground = map.createLayer('Ground', tileset, 560, 140).setPipeline('Light2D');
+		this.doors = map.createLayer('Doors', tileset, 560, 140).setPipeline('Light2D');
+		this.platforms = map.createLayer('Platforms', tileset, 560, 140).setPipeline('Light2D');
 		this.platforms.setCollisionByExclusion(-1, true);
 		this.doors.setCollisionByExclusion(-1, true);
 
 		this.cameras.main.zoom = 2;
+
+		this.socket.emit('scene created', true);
+
 
 		this.socket.on('currentPlayers', function(info){
 			info.players.forEach(function(player){
@@ -59,7 +64,7 @@ class playScenes extends Phaser.Scene
 				createNPC(self, self.socket);
 				createKey(self, self.socket);
 				self.socket.on("fireball", fireball => {
-					let ball = self.physics.add.sprite(fireball.x, fireball.y, 'fireball').setScale(0.05);
+					let ball = self.physics.add.sprite(fireball.x, fireball.y, 'bullet').setScale(0.5);
 					ball.direction = fireball.direction;
 					self.fire.push(ball);
 					let i = self.fire.length - 1;
@@ -82,7 +87,6 @@ class playScenes extends Phaser.Scene
 
 		this.socket.on('playerMoved', function (playerInfo)
 		{
-			console.log(playerInfo.velocity);
 			self.otherPlayers.getChildren().forEach(function(otherPlayer){
 				if(playerInfo.playerID === otherPlayer.playerID)
 				{
@@ -105,17 +109,30 @@ class playScenes extends Phaser.Scene
 							otherPlayer.setFlipX(true);
 						}
 					}
-					otherPlayer.anims.play(otherPlayer.type + '-walk', true);
+					if(playerInfo.velocity.x != 0 || playerInfo.velocity.y != 0)
+					{
+						otherPlayer.anims.play(otherPlayer.type + '-walk', true);
+					}
+					else
+					{
+						otherPlayer.anims.play(otherPlayer.type + '-still', true);
+					}
 				}
 			});
 		});
 
 		this.socket.on('game end', winner => {
-			self.gameEnd = true;
-			if (winner == 'finder') {
-				this.finderWins();
-			} else {
-				this.hiderWins();
+			let velX = self.player.body.velocity.x;
+			let velY = self.player.body.velocity.y;
+			self.player.setVelocityX(0);
+			self.player.setVelocityY(0);
+			if (!self.gameEnd) {
+				self.gameEnd = true;
+				if (winner == 'finder') {
+					this.finderWins(velX, velY);
+				} else {
+					this.hiderWins(velX, velY);
+				}
 			}
 		});
 
@@ -168,8 +185,8 @@ class playScenes extends Phaser.Scene
 		}
 		self.playerType = playerInfo.type;
 		self.player.setCollideWorldBounds(true);
-		self.player.direction = 'left';
 		self.player.key = 0;
+		self.player.direction = {x: 'left', y: 'none'};
 		self.physics.add.existing(self.player, true);
 		self.cameras.main.startFollow(self.player);
 		self.physics.add.collider(self.player, self.platforms);
@@ -197,13 +214,13 @@ class playScenes extends Phaser.Scene
 		self.physics.add.collider(otherPlayer, self.doors);
 	}
 
-  update()
-  {
+	update()
+	{
 		if (!this.gameEnd) {
 			if (this.player)
 			{
 				this.updateMovement();
-				this.updateOtherPlayers();
+				//this.updateOtherPlayers();
 				this.updateServer();
 			}
 			if (this.playerType == 'hider') {
@@ -214,11 +231,7 @@ class playScenes extends Phaser.Scene
 					this.doors.setCollisionByExclusion(-1, false);
 				}
 			} else {
-				if (this.time == 0) {
-					this.emitFireBall();
-					this.time = 20;
-				}
-				this.time--;
+				this.emitFireBall();
 			}
 			this.updateFireBall();
 		}
@@ -229,12 +242,12 @@ class playScenes extends Phaser.Scene
 		if(this.cursors.left.isDown)
 		{
 			this.player.setVelocityX(-this.velocity);
-			this.player.direction = 'left';
+			this.player.direction.x = 'left';
 		}
 		else if (this.cursors.right.isDown)
 		{
 			this.player.setVelocityX(this.velocity);
-			this.player.direction = 'right';
+			this.player.direction.x = 'right';
 		}
 		else
 		{
@@ -244,16 +257,17 @@ class playScenes extends Phaser.Scene
 		if(this.cursors.up.isDown)
 		{
 			this.player.setVelocityY(-this.velocity);
-			this.player.direction = 'up';
+			this.player.direction.y = 'up';
 		}
 		else if (this.cursors.down.isDown)
 		{
 			this.player.setVelocityY(this.velocity);
-			this.player.direction = 'down';
+			this.player.direction.y = 'down';
 		}
 		else
 		{
 			this.player.setVelocityY(0);
+			this.player.direction.y = 'none';
 		}
 
 		this.light.x = this.player.x;
@@ -298,19 +312,21 @@ class playScenes extends Phaser.Scene
 		for (let i=0; i<this.fire.length; i++) {
 			if (this.fire[i] != null) {
 				let fireballDir = this.fire[i].direction;
-				if (fireballDir === 'up') {
+				if (fireballDir.y === 'up') {
 					this.fire[i].body.setVelocityY(-this.velocity*1.5);
-				} else if (fireballDir === 'down') {
+				} else if (fireballDir.y === 'down') {
 					this.fire[i].body.setVelocityY(this.velocity*1.5);
-				} else if (fireballDir === 'left') {
-					this.fire[i].body.setVelocityX(-this.velocity*1.5);
-				} else {
+				}
+				if (fireballDir.x === 'right') {
 					this.fire[i].body.setVelocityX(this.velocity*1.5);
+				} else {
+					this.fire[i].body.setVelocityX(-this.velocity*1.5);
 				}
 				if (this.fire[i].body.checkWorldBounds()) {
 					this.fire[i].destroy();
 					this.fire[i] = null;
 				}
+				this.fire[i].angle += 1;
 			}
 		}
 	}
@@ -318,9 +334,9 @@ class playScenes extends Phaser.Scene
 	emitFireBall()
 	{
 		let spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-		if (Phaser.Input.Keyboard.JustDown(spaceBar)) {
-			let fireball = this.physics.add.sprite(this.player.x, this.player.y, 'fireball').setScale(0.05);
-			fireball.direction = this.player.direction;
+		if (Phaser.Input.Keyboard.JustDown(spaceBar) && !this.gunFired) {
+			let fireball = this.physics.add.sprite(this.player.x, this.player.y, 'bullet').setScale(0.5);
+			fireball.direction = {x: this.player.direction.x, y: this.player.direction.y};
 			this.fire.push(fireball);
 			let i = this.fire.length - 1;
 			this.physics.add.collider(fireball, this.platforms, _=> {
@@ -333,24 +349,27 @@ class playScenes extends Phaser.Scene
 							fireball.destroy();
 							this.fire[i] = null;
 							otherPlayer.destroy();
-							this.finderWins();
+							// this.finderWins(this.player.velocity.x, this.player.velocity.y);
+							// this.gameEnd = true;
 							this.socket.emit("game end", "finder");
 						});
 					}
 			});
 			this.socket.emit("fireball", {x:fireball.x, y:fireball.y, direction:fireball.direction});
+			this.gunFired = true;
+			this.time.delayedCall(1500, () => {
+				this.gunFired = false;
+			})
 		}
 	}
 
-	finderWins() {
-		const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
-		const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
+	finderWins(velX, velY) {
 		if (this.playerType == "hider") {
-			this.player.destroy();
-			let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y,
-										'carrier_command',"You've Lost :-(",34);
-			this.physics.add.existing(bmpText, true);
+			let bmpText = this.add.bitmapText(this.player.x - 140 - velX, this.player.y - 100,
+				'carrier_command',"You've Lost :-(", 10);
+			let text = this.add.text(this.player.x - 70, this.player.y - 40, "You've Lost :-(");
 			bmpText.setScrollFactor(0);
+			this.player.destroy();
 		} else {
 			this.otherPlayers.getChildren().forEach(otherPlayer => {
 				if (otherPlayer.type == 'hider') {
@@ -358,29 +377,32 @@ class playScenes extends Phaser.Scene
 				}
 			});
 			let bmpText = this.add.bitmapText(this.player.x, this.player.y,
-										'carrier_command',"You win!", 34);
-			let text = this.add.text(this.player.x, this.player.y, "You win!");
-			this.physics.add.existing(bmpText, true);
-			this.add.existing(bmpText, true);
-			this.physics.add.existing(text, true);
-			this.add.existing(text, true);
+										'carrier_command',"You Win!", 21);
+			let text = this.add.text(this.player.x - 40, this.player.y - 40, "You win!");
+			// this.physics.add.existing(bmpText, true);
+			// this.add.existing(bmpText, true);
+			// this.physics.add.existing(text, true);
+			// this.add.existing(text, true);
 			bmpText.setScrollFactor(0);
 			console.log(bmpText);
 		}
 	}
 
-		hiderWins() {
-			if (this.playerType == 'hider') {
-				let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y,
-					'carrier_command',"You win!", 34);
-				bmpText.setScrollFactor(0);
+	hiderWins() {
+		if (this.playerType == 'hider') {
+			let bmpText = this.add.bitmapText(this.player.x - 200, this.player.y - 100,
+				'carrier_command',"You Win!", 21);
+			let text = this.add.text(this.player.x - 40, this.player.y - 40, "You win!");
+			bmpText.setScrollFactor(0);
 
-			} else {
-				let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y,
-					'carrier_command',"You've Lost :-(", 34);
-				bmpText.setScrollFactor(0);
-			}
+		} else {
+			let bmpText = this.add.bitmapText(this.player.x - 140, this.player.y - 100,
+				'carrier_command',"You've Lost :-(", 10);
+			bmpText.setScrollFactor(0);
+			let text = this.add.text(this.player.x - 60, this.player.y - 40, "You've Lost :-(");
 		}
+	}
+
 
 	updateServer()
 	{

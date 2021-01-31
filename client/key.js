@@ -9,6 +9,7 @@ function createKey(phaser, socket) {
         let xLoc = Math.random() * 500 + 250;
         let yLoc = Math.random() * 500 + 250;
         let key = phaser.physics.add.sprite(xLoc, yLoc, 'test-sprite').setScale(0.025);
+        phasor.game.physics.arcade.overlap(sprite1, sprite2, this.someFunction, null, this);
         phaser.physics.add.collider(key, phaser.platforms);
         keys.push(key);
         keyInfo.push({x: key.x, y: key.y});
@@ -35,7 +36,6 @@ function updateKey(phaser, socket) {
         keyInfo.push({x: key.x, y: key.y});
       }
     }
-
     socket.emit("update keys", keyInfo);
 }
 
