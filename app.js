@@ -24,7 +24,7 @@ function onConnection(socket){
           socket.isassigned = true;
           socket.room = room;
           socket.join(room);
-          players.push({playerID: socket.id, x: 500, y: 250, type: 'finder'});
+          players.push({playerID: socket.id, x: 500, y: 250});
           //console.log(rooms);
         }
     }); 
@@ -39,7 +39,7 @@ function onConnection(socket){
                 {
                     angle: angle
                 }, 
-                players: [{playerID: socket.id, x: 300, y: 250, type: 'hider'}]
+                players: [{playerID: socket.id, x: 300, y: 250}]
             }
         );
         socket.room = room;
@@ -77,13 +77,30 @@ function onConnection(socket){
             }
         });
     });
+
+    socket.on('create npcs', data => {
+        io.in(socket.room).emit('create npcs', data);
+    });
+
+    socket.on('update npcs', data => {
+        // console.log("sending updates");
+        io.in(socket.room).emit('update npcs', data);
+        // console.log("sent");
+    })
 }
 
 function emitAssignment(socket) {
     let roomSize = rooms.get(socket.room).players.length;
     if (roomSize >= ROOM_SIZE) {
         for (let i = 0; i < roomSize; i++) {
-            let id = rooms.get(socket.room).players[i].playerID;
+            let player = rooms.get(socket.room).players[i];
+            if (i == 0) {
+                player.type = "hider";
+            } else {
+                player.type = "finder";
+            }
+            let id = player.playerID;
+            // rooms.get(socket.room).players[i].num = i + 1;
             io.to(id).emit("assign", roomSize, i+1);
             
             //Sends information 

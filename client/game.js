@@ -9,6 +9,9 @@ class playScenes extends Phaser.Scene
 	{
 		this.load.image('test-sprite', 'assets/test-sprite.png');
 		this.load.image('fireball', 'assets/fireball.png');
+		this.load.image('bg', 'assets/background.jpg');
+		this.load.image('tiles', 'assets/Itch release raw tileset.png');
+		this.load.tilemapTiledJSON('map', 'assets/map/mainMap.json');
 	}
 
     create()
@@ -20,7 +23,19 @@ class playScenes extends Phaser.Scene
 
 		this.otherPlayers = this.physics.add.group();
 
-		//this.fireball = this.physics.add.sprite(400, 250, 'fireball');
+		this.fire = [];
+		this.time = 30;
+
+		let bg = this.add.image(0, 0, 'bg').setOrigin(0, 0);
+		this.cameras.main.setBounds(0, 0, bg.displayWidth, bg.displayHeight);
+
+		this.physics.world.setBounds(0, 0, 1000, 1000);
+
+		const map = this.make.tilemap({key: 'map'});
+		const tileset = map.addTilesetImage('testTileset', 'tiles');
+		const platforms = map.createLayer('Platforms', tileset, 0, 0);
+
+		this.cameras.main.zoom = 2;
 
 		/* this.ball = this.add.circle(400, 250, 10, 0xffffff, 1);
 		this.physics.add.existing(this.ball);
@@ -40,6 +55,15 @@ class playScenes extends Phaser.Scene
 					self.addOtherPlayers(self, player);
 				}
 			});
+
+			if (self.playerType == 'hider') {
+				createNPC(self, self.socket);
+			} else {
+				self.socket.on("create npcs", npcInfo => {
+					onNPCCreate(self, npcInfo);
+				});
+				self.socket.on("update npcs", onNPCUpdate);
+			}
 		});
 
 		this.socket.on('playerMoved', function (playerInfo)
@@ -59,16 +83,18 @@ class playScenes extends Phaser.Scene
 	addPlayer(self, playerInfo){
 		if(playerInfo.type == 'hider')
 		{
-			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
+			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
 			self.playerType = 'hider';
 		}
 		else
 		{
-			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
+			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
 			self.playerType = 'finder';
 		}
 		self.player.setCollideWorldBounds(true);
+		self.player.direction = 'left';
 		self.physics.add.existing(self.player, true);
+		self.cameras.main.startFollow(self.player);
 	}
 
 	addOtherPlayers(self, playerInfo)
@@ -76,20 +102,17 @@ class playScenes extends Phaser.Scene
 		let otherPlayer;
 		if(playerInfo.type == 'hider')
 		{
-			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
 		}
 		else
 		{
-			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'test-sprite').setScale(0.025);
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
 		}
 		otherPlayer.playerID = playerInfo.playerID;
+		otherPlayer.type = playerInfo.type;
+		otherPlayer.direction = 'left';
 		self.otherPlayers.add(otherPlayer);
-		console.log(self.otherPlayers.children);
-		let temp = self.otherPlayers.getChildren();
-		console.log(temp[0]);
-		for (let i=0;i<temp.length;i++) {
-			console.log(temp[i]);
-		}
+		self.physics.add.existing(otherPlayer, true);
 	}
 
     update()
@@ -98,25 +121,17 @@ class playScenes extends Phaser.Scene
 		if (this.player)
 		{
 			this.updateMovement();
-			if (this.playerType != 'hider') {
-				this.emitFireBall();
-			}
 			this.updateServer();
 		}
-		if (this.fire) {
-			this.fire.body.setVelocityX(-this.velocity);
-			if (this.fire.body.collideWorldBounds) {
-				this.fire.destroy();
+		this.updateFireBall();
+		if (this.playerType == 'hider') {
+			updateNPC(this.socket);
+		} else {
+			if (this.time == 0) {
+				this.emitFireBall();
+				this.time = 30;
 			}
-			let temp = this.otherPlayers.getChildren();
-			let hidder = (temp[0]);
-			console.log(1);
-			this.physics.add.collider(this.fire, temp[0], ()=> {
-				console.log(this.fire);
-				this.fire.destroy();
-				this.fire = null;
-				hidder.destroy();
-			});
+			this.time--;
 		}
 	}
 
@@ -125,10 +140,12 @@ class playScenes extends Phaser.Scene
 		if(this.cursors.left.isDown)
 		{
 			this.player.setVelocityX(-this.velocity);
+			this.player.direction = 'left';
 		}
 		else if (this.cursors.right.isDown)
 		{
 			this.player.setVelocityX(this.velocity);
+			this.player.direction = 'right';
 		}
 		else
 		{
@@ -138,10 +155,12 @@ class playScenes extends Phaser.Scene
 		if(this.cursors.up.isDown)
 		{
 			this.player.setVelocityY(-this.velocity);
+			this.player.direction = 'up';
 		}
 		else if (this.cursors.down.isDown)
 		{
 			this.player.setVelocityY(this.velocity);
+			this.player.direction = 'down';
 		}
 		else
 		{
@@ -149,10 +168,45 @@ class playScenes extends Phaser.Scene
 		}
 	}
 
-	emitFireBall() {
+	updateFireBall()
+	{
+		for (let i=0; i<this.fire.length; i++) {
+			let fireballDir = this.fire[i].direction;
+			if (fireballDir === 'up') {
+				this.fire[i].body.setVelocityY(-this.velocity);
+			} else if (fireballDir === 'down') {
+				this.fire[i].body.setVelocityY(this.velocity);
+			} else if (fireballDir === 'left') {
+				this.fire[i].body.setVelocityX(-this.velocity);
+			} else {
+				this.fire[i].body.setVelocityX(this.velocity);
+			}
+			if (this.fire[i].body.checkWorldBounds()) {
+				console.log(this.fire.length);
+				this.fire[i].destroy();
+				this.fire.splice(i, 1);
+				console.log(this.fire.length);
+			}
+			this.otherPlayers.getChildren().forEach((otherPlayer) => {
+				if (otherPlayer.type == 'hider') {
+					this.physics.add.collider(this.fire[i], otherPlayer, ()=> {
+						console.log(this.fire);
+						this.fire[i].destroy();
+						this.fire.splice(i, 1);
+						otherPlayer.destroy();
+					});
+				}
+			});
+		}
+	}
+
+	emitFireBall()
+	{
 		let spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 		if (Phaser.Input.Keyboard.JustDown(spaceBar)) {
-			this.fire = this.physics.add.sprite(this.player.x, this.player.y, 'fireball').setScale(0.05);
+			let fireball = this.physics.add.sprite(this.player.x, this.player.y, 'fireball').setScale(0.05);
+			fireball.direction = this.player.direction;
+			this.fire.push(fireball);
 		}
 	}
 
