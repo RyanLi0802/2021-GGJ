@@ -16,6 +16,7 @@ class playScenes extends Phaser.Scene
 		this.load.spritesheet('finder', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 63, endFrame: 64});
 		this.load.spritesheet('hider', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 80, endFrame: 81});
 		this.load.spritesheet('hider-display', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 74, endFrame: 75});
+		this.load.spritesheet('key', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 71, endFrame: 72});
 	}
 
     create(socket)
@@ -48,7 +49,6 @@ class playScenes extends Phaser.Scene
 		this.cameras.main.zoom = 2;
 
 		this.socket.emit('scene created', true);
-
 
 		this.socket.on('currentPlayers', function(info){
 			info.players.forEach(function(player){
@@ -186,15 +186,15 @@ class playScenes extends Phaser.Scene
 			repeat: -1
 		})
 
-		self.anims.create({
+		self.anims.create({	
 			key: 'hider-display-still',
 			frames: [ { key: 'hider-display', frame: 74 } ],
 			frameRate: 20
 		})
 
 		self.anims.create({
-			key: 'key',
-			frames: [ { key: 'hider-display', frame: 71}],
+			key: 'key-still',
+			frames: [ { key: 'key', frame: 71}],
 			frameRate: 20
 		})
 	}
@@ -258,6 +258,7 @@ class playScenes extends Phaser.Scene
 				// console.log(this.player.key);
 				if (this.player.key >= 3) {
 					this.doors.setCollisionByExclusion(-1, false);
+					this.doors.visible = false;
 				}
 			} else {
 				this.emitFireBall();
