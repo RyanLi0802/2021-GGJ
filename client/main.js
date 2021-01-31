@@ -4,8 +4,8 @@ import Game from './game.js';
 
     /* PHASER CODE */
     const config = {
-        width: 800,
-        height: 500,
+        width: 500,
+        height: 400,
         type: Phaser.AUTO,
         pixelArt: true,
         audio: {
@@ -20,7 +20,7 @@ import Game from './game.js';
             }
         },
     };
-      
+
     const game = new Phaser.Game(config);
     game.scene.add('Game', Game);
 
