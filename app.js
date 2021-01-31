@@ -121,6 +121,26 @@ function onConnection(socket){
         //Sends information
         io.to(socket.id).emit('currentPlayers', rooms.get(socket.room));
     });
+
+    socket.on('pop up', data => {
+        io.in(socket.room).emit('pop up', data);
+    });
+
+    socket.on('consumed', data => {
+        rooms.get(socket.room).players.forEach(function(player) {
+            if(player.playerID !== socket.id) {
+                io.to(player.playerID).emit('consumed', data);
+            }
+        });
+    });
+
+    socket.on('freeze', playerType => {
+        rooms.get(socket.room).players.forEach(function(player) {
+            if(player.type !== playerType) {
+                io.to(player.playerID).emit('freeze');
+            }
+        }); 
+    });
 }
 
 function emitAssignment(socket) {
