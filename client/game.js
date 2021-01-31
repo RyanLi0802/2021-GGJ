@@ -412,7 +412,9 @@ class playScenes extends Phaser.Scene
 					this.fire[i].destroy();
 					this.fire[i] = null;
 				}
-				this.fire[i].angle += 1;
+				if (fire[i] != null) {
+					this.fire[i].angle += 1;
+				}
 			}
 		}
 	}
@@ -443,7 +445,7 @@ class playScenes extends Phaser.Scene
 			});
 			this.socket.emit("fireball", {x:fireball.x, y:fireball.y, direction:fireball.direction});
 			this.gunFired = true;
-			this.time.delayedCall(1500, () => {
+			this.time.delayedCall(1000, () => {
 				this.gunFired = false;
 			})
 		}
