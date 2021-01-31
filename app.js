@@ -24,22 +24,22 @@ function onConnection(socket){
           socket.isassigned = true;
           socket.room = room;
           socket.join(room);
-          players.push({playerID: socket.id, x: 500, y: 250});
+          players.push({playerID: socket.id, x: 500, y: 250, type: 'finder'});
           //console.log(rooms);
         }
-    });
+    }); 
 
     if (!socket.isassigned) {
         let room = "room" + roomId;
         let angle = Math.floor(Math.random() * 360);     // returns a random integer from 0 to 360
-        rooms.set(room,
+        rooms.set(room, 
             {
-                gameStarted: false,
-                ballPosition:
+                gameStarted: false, 
+                ballPosition: 
                 {
                     angle: angle
-                },
-                players: [{playerID: socket.id, x: 300, y: 250}]
+                }, 
+                players: [{playerID: socket.id, x: 300, y: 250, type: 'hider'}]
             }
         );
         socket.room = room;
@@ -73,43 +73,20 @@ function onConnection(socket){
             }
             else
             {
-                io.to(player.playerID).emit("playerMoved", {playerID: socket.id, x: movementData.x, y: movementData.y});
+                io.to(player.playerID).emit("playerMoved", {playerID: socket.id, x: movementData.x, y: movementData.y, movementData: movementData.velocity});
             }
         });
     });
-
-    socket.on('create npcs', data => {
-        io.in(socket.room).emit('create npcs', data);
-    });
-
-    socket.on('update npcs', data => {
-        io.in(socket.room).emit('update npcs', data);
-    });
-
-    socket.on('fireball', data => {
-        io.in(socket.room).emit('fireball', data);
-    })
-
-    socket.on('game end', data => {
-        io.in(socket.room).emit('game end', data);
-    })
 }
 
 function emitAssignment(socket) {
     let roomSize = rooms.get(socket.room).players.length;
     if (roomSize >= ROOM_SIZE) {
         for (let i = 0; i < roomSize; i++) {
-            let player = rooms.get(socket.room).players[i];
-            if (i == 0) {
-                player.type = "hider";
-            } else {
-                player.type = "finder";
-            }
-            let id = player.playerID;
-            // rooms.get(socket.room).players[i].num = i + 1;
+            let id = rooms.get(socket.room).players[i].playerID;
             io.to(id).emit("assign", roomSize, i+1);
-
-            //Sends information
+            
+            //Sends information 
             io.to(id).emit("currentPlayers", rooms.get(socket.room));
         }
         rooms.get(socket.room).gameStarted = true;

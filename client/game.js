@@ -13,6 +13,7 @@ class playScenes extends Phaser.Scene
 		this.load.tilemapTiledJSON('map', 'assets/map/mainMap.json');
 		this.load.bitmapFont('carrier_command', 'assets/fonts/bitmapFonts/carrier_command.png', 'assets/fonts/bitmapFonts/carrier_command.xml');
 		this.load.spritesheet('finder', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 63, endFrame: 64});
+		this.load.spritesheet('hider', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 80, endFrame: 81});
 	}
 
     create()
@@ -21,7 +22,7 @@ class playScenes extends Phaser.Scene
 		this.socket = io();
 		this.gameEnd = false;
 
-		this.velocity = 160;
+		this.velocity = 50;
 
 		this.otherPlayers = this.physics.add.group();
 
@@ -35,6 +36,8 @@ class playScenes extends Phaser.Scene
 
 		const map = this.make.tilemap({key: 'map'});
 		const tileset = map.addTilesetImage('testTileset', 'tiles');
+		const ground = map.createLayer('Ground', tileset, 0, 0);
+		const doors = map.createLayer('Doors', tileset, 0, 0);
 		this.platforms = map.createLayer('Platforms', tileset, 0, 0);
 		this.platforms.setCollisionByExclusion(-1, true);
 
@@ -77,6 +80,7 @@ class playScenes extends Phaser.Scene
 				if(playerInfo.playerID === otherPlayer.playerID)
 				{
 					otherPlayer.setPosition(playerInfo.x, playerInfo.y);
+					otherPlayer.anims.play(otherPlayer.type + '-walk', true);
 				}
 			});
 		});
@@ -90,32 +94,49 @@ class playScenes extends Phaser.Scene
 			}
 		})
 
+		this.initializeAnimations(self);
+
 		this.cursors = this.input.keyboard.createCursorKeys();
+	}
+
+	initializeAnimations(self)
+	{
+		self.anims.create({
+			key:'hider-walk',
+			frames: self.anims.generateFrameNumbers('hider', { start: 80, end: 81 }),
+			frameRate: 10,
+			repeat: -1
+		})
+
+		self.anims.create({
+			key: 'hider-still',
+			frames: [ { key: 'hider', frame: 80 } ],
+			frameRate: 20
+		});
+		self.anims.create({
+			key:'finder-walk',
+			frames: self.anims.generateFrameNumbers('finder', { start: 63, end: 64 }),
+			frameRate: 10,
+			repeat: -1
+		})
+
+		self.anims.create({
+			key: 'finder-still',
+			frames: [ { key: 'finder', frame: 63 } ],
+			frameRate: 20
+		});
 	}
 
 	addPlayer(self, playerInfo){
 		if(playerInfo.type == 'hider')
 		{
-			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
-			self.playerType = 'hider';
+			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'hider');
 		}
 		else
 		{
 			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'finder');
-			self.playerType = 'finder';
-			self.anims.create({
-				key:'walk',
-				frames: self.anims.generateFrameNumbers('finder', { start: 63, end: 64 }),
-				frameRate: 10,
-				repeat: -1
-			})
-
-			self.anims.create({
-				key: 'still',
-				frames: [ { key: 'finder', frame: 63 } ],
-				frameRate: 20
-			});
 		}
+		self.playerType = playerInfo.type;
 		self.player.setCollideWorldBounds(true);
 		self.player.direction = 'left';
 		self.physics.add.existing(self.player, true);
@@ -128,11 +149,11 @@ class playScenes extends Phaser.Scene
 		let otherPlayer;
 		if(playerInfo.type == 'hider')
 		{
-			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'hider');
 		}
 		else
 		{
-			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'fireball').setScale(0.25);
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'finder');
 		}
 		otherPlayer.playerID = playerInfo.playerID;
 		otherPlayer.type = playerInfo.type;
@@ -142,14 +163,13 @@ class playScenes extends Phaser.Scene
 		self.physics.add.collider(otherPlayer, self.platforms);
 	}
 
-
-
   update()
   {
 		if (!this.gameEnd) {
 			if (this.player)
 			{
 				this.updateMovement();
+				this.updateOtherPlayers();
 				this.updateServer();
 			}
 			if (this.playerType == 'hider') {
@@ -196,24 +216,39 @@ class playScenes extends Phaser.Scene
 		{
 			this.player.setVelocityY(0);
 		}
-
-		if (this.player.body.velocity.x > 0) {
-			this.player.setFlipX(false);
-		} else if (this.player.body.velocity.x < 0) {
-			// otherwise, make them face the other side
-			this.player.setFlipX(true);
+		if(this.playerType == "hider")
+		{
+			if (this.player.body.velocity.x > 0) {
+				this.player.setFlipX(true);
+			} else if (this.player.body.velocity.x < 0) {
+				// otherwise, make them face the other side
+				this.player.setFlipX(false);
+			}
+		}
+		else
+		{
+			if (this.player.body.velocity.x > 0) {
+				this.player.setFlipX(false);
+			} else if (this.player.body.velocity.x < 0) {
+				// otherwise, make them face the other side
+				this.player.setFlipX(true);
+			}
 		}
 
 		const velocity = this.player.body.velocity;
-		if (this.playerType == 'finder') {
-			if(velocity.x != 0 || velocity.y != 0)
-			{
-				this.player.anims.play('walk', true);
-			} else
-			{
-				this.player.anims.play('still', true);
-			}
-		}
+		if(velocity.x != 0 || velocity.y != 0)
+		{
+			this.player.anims.play(this.playerType + '-walk', true);
+		} else
+		{
+			this.player.anims.play(this.playerType + '-still', true);
+		}	
+	}
+
+	updateOtherPlayers(){
+		this.otherPlayers.getChildren().forEach(function(otherPlayer){
+			
+		});
 	}
 
 	updateFireBall() {
@@ -297,7 +332,7 @@ class playScenes extends Phaser.Scene
 
 		if(this.player.oldPosition && (x !== this.player.oldPosition.x || y !== this.player.oldPosition.y))
 		{
-			this.socket.emit('playerMovement', {x: this.player.x, y: this.player.y});
+			this.socket.emit('playerMovement', {x: this.player.x, y: this.player.y, velocity: this.player.body.velocity});
 		}
 
 		this.player.oldPosition = {
