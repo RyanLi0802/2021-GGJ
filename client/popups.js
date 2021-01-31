@@ -1,4 +1,5 @@
 let frozen = false;
+let cur = null;
 
 function popup(phaser, socket) {
     if (phaser.playerType == "hider") {
@@ -10,6 +11,10 @@ function popup(phaser, socket) {
         setInterval(function() {
             generateItems(phaser, socket);
         }, 60000);
+        if (cur != null) {
+            cur.destroy();
+        }
+        cur = phaser.physics.add.sprite(0, 0, 'test-sprite').setScale(0.1);
     } else {
         socket.on('pop up', data => {
             if (data.type == 'shoe') {
@@ -21,6 +26,7 @@ function popup(phaser, socket) {
     }
 
     socket.on('consumed', itemInfo => {
+        console.log(1);
         for (let i = 0; i < items.length; i++) {
             if (items[i] != null) {
                 items[i].destroy();
@@ -38,7 +44,15 @@ function popup(phaser, socket) {
             } else {
                 generateCube(phaser, socket, itemInfo[i].x, itemInfo[i].y);
             }
+            if (cur != null) {
+                cur.destroy();
+            }
+            cur = phaser.physics.add.sprite(0, 0, 'test-sprite').setScale(0.1);
         }
+        if (cur != null) {
+            cur.destroy();
+        }
+        cur = phaser.physics.add.sprite(0, 0, 'test-sprite').setScale(0.1);
     });
 
     socket.on('freeze', _ => {
@@ -69,12 +83,19 @@ function generateItems(phaser, socket) {
             generateCube(phaser, socket, x, y);
         }
     }
+    if (cur != null) {
+        cur.destroy();
+    }
+    cur = phaser.physics.add.sprite(0, 0, 'test-sprite').setScale(0.1);
 }
 
 
 function generateShoe(phaser, socket, x, y) {
-
-    let shoe = phaser.physics.add.sprite(x, y, 'shoe').setScale(0.50);
+    let shoe = phaser.physics.add.sprite(x, y, 'shoe').setScale(0.50).setPipeline('Light2D');
+    if (cur != null) {
+        cur.destroy();
+    }
+    cur = phaser.physics.add.sprite(0, 0, 'test-sprite').setScale(0.1);
     shoe.type = "shoe";
     items.push(shoe);
     let i = items.length - 1;
@@ -113,7 +134,11 @@ function applyIceBuff(phaser) {
 
 
 function generateCube(phaser, socket, x, y) {
-    let cube = phaser.physics.add.sprite(x, y, 'ice').setScale(0.05);
+    let cube = phaser.physics.add.sprite(x, y, 'ice').setScale(0.05).setPipeline('Light2D');
+    if (cur != null) {
+        cur.destroy();
+    }
+    cur = phaser.physics.add.sprite(0, 0, 'test-sprite').setScale(0.1);
     cube.type = "cube";
     items.push(cube);
     let i = items.length - 1;

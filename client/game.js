@@ -30,7 +30,7 @@ class playScenes extends Phaser.Scene
 		this.shoeBuff = false;
 		this.iceBuff = false;
 
-		this.velocity = 50;
+		this.velocity = 200;
 
 		this.otherPlayers = this.physics.add.group();
 
