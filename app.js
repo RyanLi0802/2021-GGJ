@@ -6,7 +6,7 @@ const port = process.env.PORT || 8000;
 const cors = require("cors");
 
 
-const ROOM_SIZE = 2;
+const ROOM_SIZE = 3;
 const rooms = new Map();
 let roomId = 1;
 
@@ -24,7 +24,7 @@ function onConnection(socket){
           socket.isassigned = true;
           socket.room = room;
           socket.join(room);
-          players.push({playerID: socket.id, x: 960, y: 640, type: 'finder'});
+          players.push({playerID: socket.id});
           //console.log(rooms);
         }
     });
@@ -39,7 +39,7 @@ function onConnection(socket){
                 {
                     angle: angle
                 },
-                players: [{playerID: socket.id, x: 960, y: 300, type: 'hider'}]
+                players: [{playerID: socket.id}]
             }
         );
         socket.room = room;
@@ -160,6 +160,19 @@ function emitAssignment(socket) {
     if (roomSize >= ROOM_SIZE) {
         for (let i = 0; i < roomSize; i++) {
             let id = rooms.get(socket.room).players[i].playerID;
+            if (i == 0) {
+                rooms.get(socket.room).players[i].x = 960;
+                rooms.get(socket.room).players[i].y = 300;
+                rooms.get(socket.room).players[i].type = 'hider';
+            } else if (i == 2) {
+                rooms.get(socket.room).players[i].x = 632;
+                rooms.get(socket.room).players[i].y = 228;
+                rooms.get(socket.room).players[i].type = 'finder';
+            } else {
+                rooms.get(socket.room).players[i].x = 1228;
+                rooms.get(socket.room).players[i].y = 228;
+                rooms.get(socket.room).players[i].type = 'finder';
+            }
             io.to(id).emit("assign", roomSize, i+1);
 
             // io.to(id).emit("currentPlayers", rooms.get(socket.room));
