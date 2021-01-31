@@ -27,18 +27,18 @@ function onConnection(socket){
           players.push({playerID: socket.id, x: 500, y: 250, type: 'finder'});
           //console.log(rooms);
         }
-    }); 
+    });
 
     if (!socket.isassigned) {
         let room = "room" + roomId;
         let angle = Math.floor(Math.random() * 360);     // returns a random integer from 0 to 360
-        rooms.set(room, 
+        rooms.set(room,
             {
-                gameStarted: false, 
-                ballPosition: 
+                gameStarted: false,
+                ballPosition:
                 {
                     angle: angle
-                }, 
+                },
                 players: [{playerID: socket.id, x: 300, y: 250, type: 'hider'}]
             }
         );
@@ -101,8 +101,8 @@ function emitAssignment(socket) {
         for (let i = 0; i < roomSize; i++) {
             let id = rooms.get(socket.room).players[i].playerID;
             io.to(id).emit("assign", roomSize, i+1);
-            
-            //Sends information 
+
+            //Sends information
             io.to(id).emit("currentPlayers", rooms.get(socket.room));
         }
         rooms.get(socket.room).gameStarted = true;
