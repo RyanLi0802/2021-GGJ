@@ -60,7 +60,6 @@ function onNPCCreate(phaser, npcInfo) {
 }
 
 function onNPCUpdate(npcInfo) {
-    // console.log("received");
     for (let i = 0; i < npcInfo.length; i++) {
         let info = npcInfo[i];
         let npc = npcs[i];
