@@ -50,11 +50,14 @@ function onConnection(socket){
     }
 
     // console.log(io.sockets.adapter.rooms);
+    console.log(1);
+    console.log(socket.id);
     emitAssignment(socket);
 
     socket.on("disconnecting", _ => {
         rooms.get(socket.room).players.remove(socket.id);
         if (!rooms.get(socket.room).gameStarted) {
+            console.log(2);
             emitAssignment(socket);
         }
         if (rooms.get(socket.room).players <= 0) {
@@ -88,22 +91,27 @@ function onConnection(socket){
 
     socket.on('fireball', data => {
         io.in(socket.room).emit('fireball', data);
-    })
+    });
 
     socket.on('game end', data => {
         io.in(socket.room).emit('game end', data);
-    })
+    });
+
+    socket.on('scene created', _=>{
+        //Sends information
+        io.to(socket.id).emit('currentPlayers', rooms.get(socket.room));
+    });
 }
 
 function emitAssignment(socket) {
+    console.log(rooms.get(socket.room).players);
     let roomSize = rooms.get(socket.room).players.length;
     if (roomSize >= ROOM_SIZE) {
         for (let i = 0; i < roomSize; i++) {
             let id = rooms.get(socket.room).players[i].playerID;
             io.to(id).emit("assign", roomSize, i+1);
 
-            //Sends information
-            io.to(id).emit("currentPlayers", rooms.get(socket.room));
+            // io.to(id).emit("currentPlayers", rooms.get(socket.room));
         }
         rooms.get(socket.room).gameStarted = true;
     }

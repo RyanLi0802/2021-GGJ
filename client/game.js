@@ -18,10 +18,10 @@ class playScenes extends Phaser.Scene
 		this.load.spritesheet('hider', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 80, endFrame: 81});
 	}
 
-    create()
+    create(socket)
     {
 		let self = this;
-		this.socket = io();
+		this.socket = socket;
 		this.gameEnd = false;
 
 		this.velocity = 50;
@@ -46,6 +46,9 @@ class playScenes extends Phaser.Scene
 		this.doors.setCollisionByExclusion(-1, true);
 
 		this.cameras.main.zoom = 2;
+
+		this.socket.emit('scene created', true);
+
 
 		this.socket.on('currentPlayers', function(info){
 			info.players.forEach(function(player){
@@ -115,13 +118,17 @@ class playScenes extends Phaser.Scene
 		});
 
 		this.socket.on('game end', winner => {
-			self.gameEnd = true;
+			let velX = self.player.body.velocity.x;
+			let velY = self.player.body.velocity.y;
 			self.player.setVelocityX(0);
 			self.player.setVelocityY(0);
-			if (winner == 'finder') {
-				this.finderWins();
-			} else {
-				this.hiderWins();
+			if (!self.gameEnd) {
+				self.gameEnd = true;
+				if (winner == 'finder') {
+					this.finderWins(velX, velY);
+				} else {
+					this.hiderWins(velX, velY);
+				}
 			}
 		})
 
@@ -262,7 +269,6 @@ class playScenes extends Phaser.Scene
 
 		this.light.x = this.player.x;
 		this.light.y = this.player.y;
-		console.log(this.light.x + " " + this.player.x+" " +this.light.y+" " + this.player.y);
 
 		if(this.playerType == "hider")
 		{
@@ -339,7 +345,8 @@ class playScenes extends Phaser.Scene
 							fireball.destroy();
 							this.fire[i] = null;
 							otherPlayer.destroy();
-							this.finderWins();
+							// this.finderWins(this.player.velocity.x, this.player.velocity.y);
+							// this.gameEnd = true;
 							this.socket.emit("game end", "finder");
 						});
 					}
@@ -352,22 +359,20 @@ class playScenes extends Phaser.Scene
 		}
 	}
 
-	finderWins() {
-		const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
-		const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
+	finderWins(velX, velY) {
 		if (this.playerType == "hider") {
-			this.player.destroy();
-			let bmpText = this.add.bitmapText(this.player.x - 140, this.player.y - 100,
+			let bmpText = this.add.bitmapText(this.player.x - 140 - velX, this.player.y - 100,
 				'carrier_command',"You've Lost :-(", 10);
 			this.physics.add.existing(bmpText, true);
 			bmpText.setScrollFactor(0);
+			this.player.destroy();
 		} else {
 			this.otherPlayers.getChildren().forEach(otherPlayer => {
 				if (otherPlayer.type == 'hider') {
 					otherPlayer.destroy();
 				}
 			});
-			let bmpText = this.add.bitmapText(this.player.x - 200, this.player.y - 100,
+			let bmpText = this.add.bitmapText(this.player.x - 200 + velX, this.player.y - 100,
 										'carrier_command',"You Win!", 21);
 			// let text = this.add.text(this.player.x, this.player.y, "You win!");
 			// this.physics.add.existing(bmpText, true);
