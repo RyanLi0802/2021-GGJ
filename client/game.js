@@ -116,6 +116,8 @@ class playScenes extends Phaser.Scene
 
 		this.socket.on('game end', winner => {
 			self.gameEnd = true;
+			self.player.setVelocityX(0);
+			self.player.setVelocityY(0);
 			if (winner == 'finder') {
 				this.finderWins();
 			} else {
@@ -221,11 +223,6 @@ class playScenes extends Phaser.Scene
 				updateNPC(this.socket);
 			} else {
 				this.emitFireBall();
-				// if (this.time == 0) {
-				// 	this.emitFireBall();
-				// 	this.time = 20;
-				// }
-				// this.time--;
 			}
 			this.updateFireBall();
 		}
@@ -360,8 +357,8 @@ class playScenes extends Phaser.Scene
 		const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
 		if (this.playerType == "hider") {
 			this.player.destroy();
-			let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y,
-										'carrier_command',"You've Lost :-(",34);
+			let bmpText = this.add.bitmapText(this.player.x - 140, this.player.y - 100,
+				'carrier_command',"You've Lost :-(", 10);
 			this.physics.add.existing(bmpText, true);
 			bmpText.setScrollFactor(0);
 		} else {
@@ -370,30 +367,31 @@ class playScenes extends Phaser.Scene
 					otherPlayer.destroy();
 				}
 			});
-			let bmpText = this.add.bitmapText(this.player.x, this.player.y,
-										'carrier_command',"You win!", 34);
-			let text = this.add.text(this.player.x, this.player.y, "You win!");
-			this.physics.add.existing(bmpText, true);
-			this.add.existing(bmpText, true);
-			this.physics.add.existing(text, true);
-			this.add.existing(text, true);
+			let bmpText = this.add.bitmapText(this.player.x - 200, this.player.y - 100,
+										'carrier_command',"You Win!", 21);
+			// let text = this.add.text(this.player.x, this.player.y, "You win!");
+			// this.physics.add.existing(bmpText, true);
+			// this.add.existing(bmpText, true);
+			// this.physics.add.existing(text, true);
+			// this.add.existing(text, true);
 			bmpText.setScrollFactor(0);
 			console.log(bmpText);
 		}
 	}
-
+ 
 	hiderWins() {
 		if (this.playerType == 'hider') {
-			let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y,
-				'carrier_command',"You win!", 34);
+			let bmpText = this.add.bitmapText(this.player.x - 200, this.player.y - 100,
+				'carrier_command',"You Win!", 21);
 			bmpText.setScrollFactor(0);
 
 		} else {
-			let bmpText = this.add.bitmapText(this.cameras.main.x, this.cameras.main.y,
-				'carrier_command',"You've Lost :-(", 34);
+			let bmpText = this.add.bitmapText(this.player.x - 140, this.player.y - 100,
+				'carrier_command',"You've Lost :-(", 10);
 			bmpText.setScrollFactor(0);
 		}
 	}
+	
 
 	updateServer()
 	{
