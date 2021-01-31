@@ -412,7 +412,7 @@ class playScenes extends Phaser.Scene
 					this.fire[i].destroy();
 					this.fire[i] = null;
 				}
-				if (fire[i] != null) {
+				if (this.fire[i] != null) {
 					this.fire[i].angle += 1;
 				}
 			}
