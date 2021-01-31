@@ -15,6 +15,7 @@ class playScenes extends Phaser.Scene
 		this.load.bitmapFont('carrier_command', 'assets/carrier_command.png', 'assets/carrier_command.xml');
 		this.load.spritesheet('finder', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 63, endFrame: 64});
 		this.load.spritesheet('hider', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 80, endFrame: 81});
+		this.load.spritesheet('hider-display', 'assets/tilesetMPR.png', {frameWidth: 8, frameHeight: 8, startFrame: 74, endFrame: 75});
 	}
 
     create(socket)
@@ -177,12 +178,31 @@ class playScenes extends Phaser.Scene
 			frames: [ { key: 'finder', frame: 63 } ],
 			frameRate: 20
 		});
+
+		self.anims.create({
+			key: 'hider-display-walk',
+			frames: self.anims.generateFrameNumbers('finder', { start: 74, end: 75 }),
+			frameRate: 10,
+			repeat: -1
+		})
+
+		self.anims.create({
+			key: 'hider-display-still',
+			frames: [ { key: 'hider-display', frame: 74 } ],
+			frameRate: 20
+		})
+
+		self.anims.create({
+			key: 'key',
+			frames: [ { key: 'hider-display', frame: 71}],
+			frameRate: 20
+		})
 	}
 
 	addPlayer(self, playerInfo){
 		if(playerInfo.type == 'hider')
 		{
-			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'hider');
+			self.player = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'hider-display');
 			self.light = self.lights.addLight(200, 200, 100).setScrollFactor(1.0);
 			self.lights.enable().setAmbientColor(0xffffff);
 		}
@@ -305,12 +325,27 @@ class playScenes extends Phaser.Scene
 		}
 
 		const velocity = this.player.body.velocity;
+		
 		if(velocity.x != 0 || velocity.y != 0)
 		{
-			this.player.anims.play(this.playerType + '-walk', true);
+			if(this.playerType == 'hider')
+			{
+				this.player.anims.play(this.playerType + '-display-walk', true);
+			}
+			else
+			{
+				this.player.anims.play(this.playerType + '-walk', true);
+			}
 		} else
 		{
-			this.player.anims.play(this.playerType + '-still', true);
+			if(this.playerType == 'hider')
+			{
+				this.player.anims.play(this.playerType + '-display-still', true);
+			}
+			else
+			{
+				this.player.anims.play(this.playerType + '-still', true);
+			}
 		}
 	}
 

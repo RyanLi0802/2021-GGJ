@@ -8,7 +8,7 @@ function createKey(phaser, socket) {
     for (let i = 0; i < NUM_OF_KEY; i++) {
         let xLoc = Math.random() * 600 + 660;
         let yLoc = Math.random() * 600 + 240;
-        let key = phaser.physics.add.sprite(xLoc, yLoc, 'test-sprite').setScale(0.025);
+        let key = phaser.physics.add.sprite(xLoc, yLoc, 'key').setScale(2);
         // phaser.physics.overlap(key, phaser.platforms, function() {
         //   key.destroy();
         //   key = regenerateKey(phaser);
