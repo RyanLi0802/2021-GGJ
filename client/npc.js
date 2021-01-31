@@ -64,6 +64,7 @@ function onNPCCreate(phaser, npcInfo) {
         phaser.physics.add.collider(npc, phaser.platforms);
         npcs.push(npc);
     }
+    phaser.socket.on("update npcs", onNPCUpdate);
 }
 
 function onNPCUpdate(npcInfo) {
