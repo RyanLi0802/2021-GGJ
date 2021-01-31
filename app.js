@@ -95,6 +95,13 @@ function onConnection(socket){
         // console.log(data);
     });
 
+    socket.on('create keys', data => {
+        setTimeout(_=> {
+            io.in(socket.room).emit('create keys', data);
+        }, 3000);
+        // console.log(data);
+    });
+
     socket.on('update npcs', data => {
         io.in(socket.room).emit('update npcs', data);
     });
