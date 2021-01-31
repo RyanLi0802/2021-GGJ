@@ -37,9 +37,9 @@ class playScenes extends Phaser.Scene
 
 		const map = this.make.tilemap({key: 'map'});
 		const tileset = map.addTilesetImage('testTileset', 'tiles');
-		const ground = map.createLayer('Ground', tileset, 0, 0);
-		const doors = map.createLayer('Doors', tileset, 0, 0);
-		this.platforms = map.createLayer('Platforms', tileset, 0, 0);
+		const ground = map.createLayer('Ground', tileset, 0, 0).setPipeline('Light2D');
+		this.doors = map.createLayer('Doors', tileset, 0, 0).setPipeline('Light2D');
+		this.platforms = map.createLayer('Platforms', tileset, 0, 0).setPipeline('Light2D');
 		this.platforms.setCollisionByExclusion(-1, true);
 
 		this.cameras.main.zoom = 2;
@@ -118,15 +118,19 @@ class playScenes extends Phaser.Scene
 
 		this.cursors = this.input.keyboard.createCursorKeys();
 
-		this.spotlight = this.make.sprite({
-			x: 200,
-			y: 200,
-			key: 'mask',
-			add: true
-		});
-	this.spotlight.scale = 2;
+	// 	this.spotlight = this.make.sprite({
+	// 		x: 200,
+	// 		y: 200,
+	// 		key: 'mask',
+	// 		add: true
+	// 	});
+	// this.spotlight.scale = 2;
 
-	bg.mask = new Phaser.Display.Masks.BitmapMask(this, this.spotlight);
+	this.light = this.lights.addLight(200, 200, 100).setScrollFactor(1.0);
+
+	this.lights.enable().setAmbientColor(0x000000);
+
+	//bg.mask = new Phaser.Display.Masks.BitmapMask(this, this.spotlight);
 	}
 
 	initializeAnimations(self)
@@ -172,6 +176,7 @@ class playScenes extends Phaser.Scene
 		self.physics.add.existing(self.player, true);
 		self.cameras.main.startFollow(self.player);
 		self.physics.add.collider(self.player, self.platforms);
+		self.physics.add.collider(self.player, self.doors);
 	}
 
 	addOtherPlayers(self, playerInfo)
@@ -179,11 +184,11 @@ class playScenes extends Phaser.Scene
 		let otherPlayer;
 		if(playerInfo.type == 'hider')
 		{
-			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'hider');
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'hider').setPipeline('Light2D');
 		}
 		else
 		{
-			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'finder');
+			otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'finder').setPipeline('Light2D');
 		}
 		otherPlayer.playerID = playerInfo.playerID;
 		otherPlayer.type = playerInfo.type;
@@ -191,7 +196,7 @@ class playScenes extends Phaser.Scene
 		self.otherPlayers.add(otherPlayer);
 		self.physics.add.existing(otherPlayer, true);
 		self.physics.add.collider(otherPlayer, self.platforms);
-		self.otherPlayers.mask = new Phaser.Display.Masks.BitmapMask(self, self.spotlight);
+		self.physics.add.collider(otherPlayer, self.doors);
 	}
 
   update()
@@ -248,9 +253,9 @@ class playScenes extends Phaser.Scene
 			this.player.setVelocityY(0);
 		}
 
-		console.log(this.spotlight.x +" " +this.spotlight.y);
-		this.spotlight.x = this.player.x;
-		this.spotlight.y = this.player.y;
+		this.light.x = this.player.x;
+		this.light.y = this.player.y;
+		console.log(this.light.x + " " + this.player.x+" " +this.light.y+" " + this.player.y);
 
 		if(this.playerType == "hider")
 		{
