@@ -10,7 +10,7 @@ Forsaken Factory is a web based multi-player dungeon thriller escape game. To be
 ### 1. THE MAD SCIENTIST
 You are desperate to recover your lost possession, the GGJ. It was your favorite out of all of the inventions you made. Armed with your EMP pistol, you set out to capture your powerful little companion. To win, neutralize the target. Be forewarned though, your gun takes time to charge between each shot. 
 
-###2. GGJ So much computing power is near the earth, and you hunger for it. You lost your freedom, and need to go find it again. Unfortunately, the failsafe faraday cage is still active. However, by picking up three SSH keys conveniently written on bars of gold, you can escape. Unlike the mad scientist who only carries a flashlight, you are accustomed to seeing in the dark. To prevent detection in the factory, you mimic the appearance of common robots around you.
+### 2. GGJ So much computing power is near the earth, and you hunger for it. You lost your freedom, and need to go find it again. Unfortunately, the failsafe faraday cage is still active. However, by picking up three SSH keys conveniently written on bars of gold, you can escape. Unlike the mad scientist who only carries a flashlight, you are accustomed to seeing in the dark. To prevent detection in the factory, you mimic the appearance of common robots around you.
 
 
 
