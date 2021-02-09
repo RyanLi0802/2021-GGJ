@@ -50,24 +50,18 @@ function createKey(phaser, socket) {
 
 function updateKey(phaser, socket) {
     let keyInfo = [];
-    for (let i = 0; i < keys.length; i++) {
+    let keyChanged = false;
+    for (let i = 0; i < NUM_OF_KEY; i++) {
       let key = keys[i];
-      if(key != null && i != keys.length - 1 && phaser.cursors.space.isDown)
-      {
+      if(key != null && phaser.cursors.space.isDown) {
         let dis = (key.x - phaser.player.x) * (key.x - phaser.player.x) + (key.y - phaser.player.y) * (key.y - phaser.player.y);
         if (dis < 625) {
           phaser.player.key++;
           key.destroy();
           keys[i] = null;
-          let remain = 3 - phaser.player.key;
-          if (remain <= 0 ) {
-            alert("A key has been found. No more keys needed! RUN AND ESCAPE!");
-          } else {
-            alert("A key has been found. Need " + remain + " more keys to escape.");
-          }
           phaser.player.setVelocityY(0);
           phaser.player.setVelocityX(0);
-          socket.emit("keyTouched", phaser.player.key);
+          keyChanged = true;
         }
       }
       if(key != null && key.anims != null) {
@@ -75,7 +69,18 @@ function updateKey(phaser, socket) {
         keyInfo.push({x: key.x, y: key.y});
       }
     }
-    socket.emit("update keys", keyInfo);
+
+
+    if (keyChanged) {
+      socket.emit("update keys", keyInfo);
+      let remain = 3 - phaser.player.key;
+      if (remain <= 0 ) {
+        alert("A key has been found. No more keys needed! RUN AND ESCAPE!");
+      } else {
+        alert("A key has been found. Need " + remain + " more keys to escape.");
+      }
+      socket.emit("keyTouched", phaser.player.key);
+    }
 }
 
 
@@ -84,29 +89,46 @@ function onKeyCreate(phaser, keyInfo) {
     for (let i = 0; i < keyInfo.length - 1; i++) {
         let info = keyInfo[i];
         let key=null;
-        if (i != keyInfo.length -1)
         key = phaser.physics.add.sprite(info.x, info.y, 'key').setPipeline('Light2D');
-        else {
-          key = phaser.physics.add.sprite(info.x, info.y, 'key');
-        }
         phaser.physics.add.existing(key, true);
         keys.push(key);
     }
-    let key = phaser.physics.add.sprite(keyInfo[keyInfo.length - 1].x, keyInfo[keyInfo.length - 1].y, 'key').setScale(0.0001);
+    let key = phaser.physics.add.sprite(keyInfo[keyInfo.length - 1].x, keyInfo[keyInfo.length - 1].y, 'test-sprite').setScale(0.0001);
     phaser.physics.add.existing(key, true);
-        keys.push(key);
+    key.anims.play('key-still', true);
+    keys.push(key);
 }
 
-function onKeyUpdate(keyInfo) {
-    for (let i = 0; i < keyInfo.length - 1; i++) {
-        let info = keyInfo[i];
-        let key = keys[i];
-        if (key != null && key.anims != null) {
-          key.x = info.x;
-          key.y = info.y;
-          key.anims.play('key-still', true);
-        }
+function drawKeys() {
+  for (let i = 0; i < keys.length; i++) {
+    key = keys[i];
+    if (key != null && key.anims != null) {
+      key.anims.play('key-still', true);
     }
+  }
+}
+
+function onKeyUpdate(keyInfo, phaser) {
+    for (let i = 0; i < keys.length; i++) {
+      if (keys[i] != null) {
+        keys[i].destroy();
+      }
+      keys[i] = null;
+    }
+
+    for (let i = 0; i < keyInfo.length; i++) {
+        let info = keyInfo[i];
+        let key = phaser.physics.add.sprite(info.x, info.y, 'key').setPipeline('Light2D');    
+        key.x = info.x;
+        key.y = info.y;
+        phaser.physics.add.existing(key, true);
+        key.anims.play('key-still', true);
+        keys[i] = key;
+    }
+
+    keys[keys.length - 1] = phaser.physics.add.sprite(100, 100, 'test-sprite').setScale(0.0001);
+    phaser.physics.add.existing(key, true);
+    // keys[keys.length - 1].anims.play('key-still', true);
 }
 
 function onKeyTaken(data){

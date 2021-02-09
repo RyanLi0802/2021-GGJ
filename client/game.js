@@ -89,7 +89,9 @@ class playScenes extends Phaser.Scene
 					onKeyCreate(self, keyInfo);
 				});
 				self.socket.on("update npcs", onNPCUpdate);
-				self.socket.on("update keys", onKeyUpdate);
+				self.socket.on("update keys", keyInfo => {
+					onKeyUpdate(keyInfo, self);
+				});
 				self.socket.on("keyTaken", data => {
 					onKeyTaken(data);
 				})
@@ -261,13 +263,14 @@ class playScenes extends Phaser.Scene
 					this.doors.setCollisionByExclusion(-1, false);
 					this.doors.visible = false;
 				}
-				console.log(this.player.x);
+				// console.log(this.player.x);
 				if(this.player.x <= 565 || this.player.x >= 1340)
 				{
 					this.socket.emit('game end','hider');
 				}
 			} else {
 				this.emitFireBall();
+				drawKeys();
 			}
 
 			if (this.shoeBuff) {
