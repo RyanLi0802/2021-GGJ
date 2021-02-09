@@ -264,7 +264,7 @@ class playScenes extends Phaser.Scene
 					this.doors.visible = false;
 				}
 				// console.log(this.player.x);
-				if(this.player.x <= 565 || this.player.x >= 1340)
+				if(this.player.x <= 565 || this.player.x >= 1350)
 				{
 					this.socket.emit('game end','hider');
 				}
