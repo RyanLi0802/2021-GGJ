@@ -37,7 +37,7 @@ import Title from './title.js';
 
     /* ROOM MANAGEMENT CODE */
 
-    const ROOM_SIZE = 3;
+    const ROOM_SIZE = 5;
     var myId;
     socket.on("assign", onAssignment);
 
